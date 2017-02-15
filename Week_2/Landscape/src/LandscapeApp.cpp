@@ -43,7 +43,7 @@ bool LandscapeApp::startup() {
 	setBackgroundColour(0.25f, 0.25f, 0.25f);
 
 	// initialize gizmo primitive counts
-	Gizmos::create(10000, 10000, 10000, 10000);
+	//Gizmos::create(10000, 10000, 10000, 10000);
 
 	//Setup camera starting position and where it's looking
 	m_camera = new Camera();
@@ -51,7 +51,7 @@ bool LandscapeApp::startup() {
 	m_camera->LookAt(glm::vec3(0.0f,0.0f,0.0f));
 
 	LoadShader();
-	CreateCube();
+	CreateLandscape();
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -60,10 +60,10 @@ bool LandscapeApp::startup() {
 }
 
 void LandscapeApp::shutdown() {
-	DestroyCube();
+	DestroyLandscape();
 	UnloadShader();
 
-	Gizmos::destroy();
+	//Gizmos::destroy();
 	delete m_camera;
 }
 
@@ -76,9 +76,9 @@ void LandscapeApp::update(float deltaTime) {
 	m_camera->Update(deltaTime);
 
 	// wipe the gizmos clean for this frame
-	Gizmos::clear();
+	//Gizmos::clear();
 
-	DrawGrid();
+	//DrawGrid();
 	
 
 	// quit if we press escape
@@ -107,7 +107,8 @@ void LandscapeApp::draw() {
 	
 	// wipe the screen to the background colour
 	clearScreen();
-
+	glPolygonMode(GL_FRONT_AND_BACK,GL_FRONT);
+	
 	// update perspective in case window resized
 	m_projectionMatrix = glm::perspective(glm::pi<float>() * 0.25f,
 										  getWindowWidth() / (float)getWindowHeight(),
@@ -128,13 +129,14 @@ void LandscapeApp::draw() {
 	// When we setup the geometry, we did a bunch of glEnableVertexAttribArray and glVertexAttribPointer method calls
 	// we also Bound the vertex array and index array via the glBindBuffer call.
 	// if we where not using VAO's we would have to do thoes method calls each frame here.
-	glBindVertexArray(m_cubeVao);
+	glBindVertexArray(m_Vao);
 
 	// Step 4: Draw Elements. We are using GL_TRIANGLES.
 	// we need to tell openGL how many indices there are, and the size of our indices
 	// when we setup the geometry, our indices where an unsigned char (1 byte for each indicy)
-	glDrawElements(GL_TRIANGLES, m_cubeIndicesCount, GL_UNSIGNED_BYTE, 0);
-
+	//glDrawElements(GL_TRIANGLES, m_cubeIndicesCount, GL_UNSIGNED_BYTE, 0);
+	//---No longer drawing the indices...now drawing landscape---
+	DrawLandscape();
 	// Step 5: Now that we are done drawing the geometry
 	// unbind the vao, we are basically cleaning the opengl state
 	glBindVertexArray(0);
@@ -142,7 +144,7 @@ void LandscapeApp::draw() {
 	// Step 6: de-activate the shader program, dont do future rendering with it any more.
 	glUseProgram(0);
 
-	Gizmos::draw(m_projectionMatrix * m_camera->GetView());
+	//Gizmos::draw(m_projectionMatrix * m_camera->GetView());
 }
 
 void LandscapeApp::LoadShader()
@@ -214,23 +216,23 @@ void LandscapeApp::CreateCube()
 
 		// POSITION						COLOR
 		// FRONT FACE				  - RED
-		{ { -0.5f,-0.5f, 0.5f, 1.0f },{ 1.0f, 0.0f, 0.0f, 0.5f } },	// 0
-		{ { 0.5f,-0.5f, 0.5f, 1.0f },{ 1.0f, 0.0f, 0.0f, 0.5f } },	// 1
-		{ { 0.5f, 0.5f, 0.5f, 1.0f },{ 1.0f, 0.0f, 0.0f, 0.5f } },	// 2
-		{ { -0.5f, 0.5f, 0.5f, 1.0f },{ 1.0f, 0.0f, 0.0f, 0.5f } },	// 3
+		{glm::vec4( -0.5f,-0.5f, 0.5f, 1.0f),glm::vec4( 1.0f, 0.0f, 0.0f, 0.5f )},	// 0
+		{glm::vec4( 0.5f,-0.5f, 0.5f, 1.0f ),glm::vec4( 1.0f, 0.0f, 0.0f, 0.5f )},	// 1
+		{glm::vec4( 0.5f, 0.5f, 0.5f, 1.0f ),glm::vec4( 1.0f, 0.0f, 0.0f, 0.5f )},	// 2
+		{glm::vec4( -0.5f, 0.5f, 0.5f, 1.0f),glm::vec4( 1.0f, 0.0f, 0.0f, 0.5f )},	// 3
 	};
 
 	unsigned char indices[] = {
 		0, 1, 2,	0, 2, 3			// front facme
 	};
 
-	m_cubeIndicesCount = sizeof(indices) / sizeof(unsigned char);
+	m_IndicesCount = sizeof(indices) / sizeof(unsigned char);
 
 	// Generate the VAO and Bind bind it.
 	// Our VBO (vertex buffer object) and IBO (Index Buffer Object) will be "grouped" with this VAO
 	// other settings will also be grouped with the VAO. this is used so we can reduce draw calls in the render method.
-	glGenVertexArrays(1, &m_cubeVao);
-	glBindVertexArray(m_cubeVao);
+	glGenVertexArrays(1, &m_Vao);
+	glBindVertexArray(m_Vao);
 
 	// Create our VBO and IBO.
 	// Then tell Opengl what type of buffer they are used for
@@ -238,11 +240,11 @@ void LandscapeApp::CreateCube()
 	// IBO a buffer in graphics memory to contain our indices.
 	// Then Fill the buffers with our generated data.
 	// This is taking our verts and indices from ram, and sending them to the graphics card
-	glGenBuffers(1, &m_cubeVbo);
-	glGenBuffers(1, &m_cubeIbo);
+	glGenBuffers(1, &m_Vbo);
+	glGenBuffers(1, &m_Ibo);
 
-	glBindBuffer(GL_ARRAY_BUFFER, m_cubeVbo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_cubeIbo);
+	glBindBuffer(GL_ARRAY_BUFFER, m_Vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Ibo);
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
@@ -284,7 +286,87 @@ void LandscapeApp::Vertex::SetupVertexAttribPointers()
 void LandscapeApp::DestroyCube()
 {
 	// When We're Done, destroy the geometry
-	glDeleteBuffers(1, &m_cubeIbo);
-	glDeleteBuffers(1, &m_cubeVbo);
-	glDeleteVertexArrays(1, &m_cubeVao);
+	glDeleteBuffers(1, &m_Ibo);
+	glDeleteBuffers(1, &m_Vbo);
+	glDeleteVertexArrays(1, &m_Vao);
+}
+
+void LandscapeApp::CreateLandscape()
+{
+	std::vector<Vertex> verts;
+	std::vector<unsigned short> indices;
+	//Create grid of vertices
+	for (int i = 0; i < M_LAND_DEPTH; i++)
+	{
+		for (int j = 0; j < M_LAND_WIDTH; j++)
+		{
+			//position of vertex
+			float xPos = (j * 0.1f) - (M_LAND_WIDTH * 0.1f * 0.5f);
+			float yPos = 0.0f;
+			float zPos = (i * 0.1f) - (M_LAND_DEPTH * 0.1f * 0.5f);
+			Vertex vert{
+				glm::vec4(xPos,yPos,zPos,1.0f),//Position
+				glm::vec4(1.0f,1.0f,1.0f,1.0f)//Colour
+			};
+			verts.push_back(vert);
+		}
+	}
+	//calculate indices for triangles
+	for (int i = 0;i < M_LAND_DEPTH - 1;i++)
+	{
+		for (int j = 0; j < M_LAND_WIDTH - 1; j++)
+		{
+			int k = i * M_LAND_WIDTH + j;//the address of the vertices in the single dimesion vector
+			
+			indices.push_back(k + 1);			//b--a
+			indices.push_back(k);				//| /
+			indices.push_back(k + M_LAND_WIDTH);//c
+
+			indices.push_back(k + 1);			//	  a
+			indices.push_back(k + M_LAND_WIDTH);//  / |
+			indices.push_back(k +M_LAND_WIDTH+ 1);			// b--c
+		}
+	}
+	m_vertCount = verts.size();
+	m_IndicesCount = indices.size();
+
+	// Generate the VAO and Bind bind it.
+	// Our VBO (vertex buffer object) and IBO (Index Buffer Object) will be "grouped" with this VAO
+	// other settings will also be grouped with the VAO. this is used so we can reduce draw calls in the render method.
+	glGenVertexArrays(1, &m_Vao);
+	glBindVertexArray(m_Vao);
+
+	// Create our VBO and IBO.
+	// Then tell Opengl what type of buffer they are used for
+	// VBO a buffer in graphics memory to contains our vertices
+	// IBO a buffer in graphics memory to contain our indices.
+	// Then Fill the buffers with our generated data.
+	// This is taking our verts and indices from ram, and sending them to the graphics card
+	glGenBuffers(1, &m_Vbo);
+	glGenBuffers(1, &m_Ibo);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_Vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Ibo);
+
+	glBufferData(GL_ARRAY_BUFFER, m_vertCount * sizeof(Vertex), &verts[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_IndicesCount * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
+
+	Vertex::SetupVertexAttribPointers();
+
+	//unbind after we have finished using them
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+
+}
+
+void LandscapeApp::DestroyLandscape()
+{
+}
+
+void LandscapeApp::DrawLandscape()
+{
+	glDrawElements(GL_TRIANGLES, m_IndicesCount, GL_UNSIGNED_SHORT, 0);
+
 }
