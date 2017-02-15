@@ -46,7 +46,7 @@ void Camera::Update(float deltaTime)
 		//track the last position of the mouse regardless of wether we're clicking
 		input->getMouseXY(&m_lastMouseXPos, &m_lastMouseYPos);
 	}
-
+	glm::vec3 strafe = glm::normalize(glm::cross(m_cameraLook, m_cameraUp));
 	if (input->isKeyDown(aie::INPUT_KEY_W))
 	{
 		m_position += m_moveSpeed * m_cameraLook * deltaTime;
@@ -55,6 +55,26 @@ void Camera::Update(float deltaTime)
 	if (input->isKeyDown(aie::INPUT_KEY_S))
 	{
 		m_position -= m_moveSpeed * m_cameraLook * deltaTime;
+		CalculateLook();
+	}
+	if (input->isKeyDown(aie::INPUT_KEY_A))
+	{
+		m_position -= m_moveSpeed * strafe  * deltaTime;
+		CalculateLook();
+	}
+	if (input->isKeyDown(aie::INPUT_KEY_D))
+	{
+		m_position += m_moveSpeed * strafe  * deltaTime;
+		CalculateLook();
+	}
+	if (input->isKeyDown(aie::INPUT_KEY_Q))
+	{
+		m_position.y += m_moveSpeed *deltaTime;
+		CalculateLook();
+	}
+	if (input->isKeyDown(aie::INPUT_KEY_E))
+	{
+		m_position.y -= m_moveSpeed *deltaTime;
 		CalculateLook();
 	}
 }
