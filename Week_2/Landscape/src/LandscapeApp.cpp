@@ -56,8 +56,8 @@ bool LandscapeApp::startup() {
 	m_texture->load("textures/Tile.png");
 
 	//load heightmap
-	//m_heightMap = new aie::Texture();
-	//m_heightMap->load("textures/heightmap.bmp");
+	m_heightMap = new aie::Texture();
+	m_heightMap->load("textures/heightmap.bmp");
 	LoadShader();
 	CreateLandscape();
 
@@ -307,7 +307,8 @@ void LandscapeApp::CreateLandscape()
 	std::vector<Vertex> verts;
 	std::vector<unsigned short> indices;
 
-	//const unsigned char* pixels = m_heightMap->getPixels();
+	const unsigned char* pixels = m_heightMap->getPixels();
+	
 	//Create grid of vertices
 	for (int i = 0; i < M_LAND_DEPTH; i++)
 	{
@@ -317,7 +318,7 @@ void LandscapeApp::CreateLandscape()
 
 			//position of vertex
 			float xPos = (j * 0.1f) - (M_LAND_WIDTH * 0.1f * 0.5f);
-			float yPos = /*(pixels[k * 3] / 255.0f) * 3*/0; // ----
+			float yPos = (pixels[k * 3] / 255.0f) * 3;
 			float zPos = (i * 0.1f) - (M_LAND_DEPTH * 0.1f * 0.5f);
 
 			float u = (float)j / (M_LAND_WIDTH - 1);
