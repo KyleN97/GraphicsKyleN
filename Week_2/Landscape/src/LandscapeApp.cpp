@@ -317,7 +317,7 @@ void LandscapeApp::CreateLandscape()
 
 			//position of vertex
 			float xPos = (j * 0.1f) - (M_LAND_WIDTH * 0.1f * 0.5f);
-			float yPos = /*(pixels[k * 3] / 255.0f) * 3*/0; // ----
+			float yPos = /*(pixels[k * 3] / 255.0f) * 6 */0; // ----
 			float zPos = (i * 0.1f) - (M_LAND_DEPTH * 0.1f * 0.5f);
 
 			float u = (float)j / (M_LAND_WIDTH - 1);
