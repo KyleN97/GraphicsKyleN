@@ -53,11 +53,11 @@ bool LandscapeApp::startup() {
 	m_camera->LookAt(glm::vec3(0.0f,0.0f,0.0f));
 	//load texture
 	m_texture = new aie::Texture();
-	m_texture->load("textures/Landscape/Tile.png");
+	m_texture->load("Landscape/Textures/Tile.png");
 
 	//load heightmap
 	m_heightMap = new aie::Texture();
-	m_heightMap->load("textures/Landscape/heightmap.bmp");
+	m_heightMap->load("Landscape/Textures/heightmap.bmp");
 	LoadShader();
 	CreateLandscape();
 
