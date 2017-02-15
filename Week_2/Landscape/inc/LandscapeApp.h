@@ -34,7 +34,7 @@ public:
 
 protected:
 	Camera* m_camera;
-	aie::Texture* m_texture;
+	aie::Texture* m_texture, m_normal;
 	aie::Texture* m_heightMap;
 
 	glm::mat4	m_viewMatrix;
