@@ -20,6 +20,8 @@ STEP 4: Unload Shader and Geometry
 #include "LandscapeApp.h"
 #include "Gizmos.h"
 #include "Input.h"
+#include "Camera.h"
+#include <Texture.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
@@ -49,7 +51,13 @@ bool LandscapeApp::startup() {
 	m_camera = new Camera();
 	m_camera->SetPosition(glm::vec3(5.0f,5.0f,5.0f));
 	m_camera->LookAt(glm::vec3(0.0f,0.0f,0.0f));
+	//load texture
+	m_texture = new aie::Texture();
+	m_texture->load("textures/Tile.png");
 
+	//load heightmap
+	//m_heightMap = new aie::Texture();
+	//m_heightMap->load("textures/heightmap.bmp");
 	LoadShader();
 	CreateLandscape();
 
@@ -124,7 +132,11 @@ void LandscapeApp::draw() {
 		1, 
 		false, 
 		glm::value_ptr(projectionView));
-
+	//setup texture in open gl - select the first texture as active, then bind it 
+	//also set it up as a uniform variable for shader
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_texture->getHandle());
+	glUniform1i(glGetUniformLocation(m_shader,"texture"),0);
 	// Step 3: Bind the VAO
 	// When we setup the geometry, we did a bunch of glEnableVertexAttribArray and glVertexAttribPointer method calls
 	// we also Bound the vertex array and index array via the glBindBuffer call.
@@ -150,24 +162,25 @@ void LandscapeApp::draw() {
 void LandscapeApp::LoadShader()
 {
 	static const char* vertex_shader =
-	"#version 400\n									\
+		"#version 400\n								\
 	in vec4 vPosition;\n							\
-	in vec4 vColor;\n								\
-	out vec4 fColor;\n								\
+	in vec2 vUv;\n									\
+	out vec2 fUv;\n 								\
 	uniform mat4 projectionView; \n					\
 	void main ()\n									\
 	{\n												\
-	  fColor = vColor;\n							\
+		fUv = vUv;\n								\
 	  gl_Position = projectionView * vPosition;\n	\
-	}";
+	}";												
 
 	static const char* fragment_shader =
-	"#version 400\n				\
-	in vec4 fColor;\n			\
-	out vec4 frag_color;\n		\
-	void main ()\n				\
-	{\n							\
-	  frag_color = fColor;\n	\
+		"#version 400\n						\
+	in vec2 fUv;\n							\
+	out vec4 frag_color;\n					\
+	uniform sampler2D texture;\n			\
+	void main ()\n							\
+	{\n										\
+	  frag_color = texture2D(texture,fUv);\n\
 	}";
 
 	// Step 1:
@@ -194,7 +207,7 @@ void LandscapeApp::LoadShader()
 	// Step 5:
 	// describe the location of the shader inputs the link the program
 	glBindAttribLocation(m_shader, 0, "vPosition");
-	glBindAttribLocation(m_shader, 1, "vColor");
+	glBindAttribLocation(m_shader, 1, "vUv");
 	glLinkProgram(m_shader);
 
 	// step 6:
@@ -212,48 +225,48 @@ void LandscapeApp::UnloadShader()
 
 void LandscapeApp::CreateCube()
 {
-	Vertex verts[] = {
+	//Vertex verts[] = {
+	//
+	//	// POSITION						COLOR
+	//	// FRONT FACE				  - RED
+	//	{glm::vec4(-0.5f,-0.5f, 0.5f, 1.0f),glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)},	// 0
+	//	{glm::vec4(0.5f,-0.5f, 0.5f, 1.0f),glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)},	// 1
+	//	{glm::vec4(0.5f, 0.5f, 0.5f, 1.0f),glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)},	// 2
+	//	{glm::vec4(-0.5f, 0.5f, 0.5f, 1.0f),glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)},	// 3
+	//};
 
-		// POSITION						COLOR
-		// FRONT FACE				  - RED
-		{glm::vec4( -0.5f,-0.5f, 0.5f, 1.0f),glm::vec4( 1.0f, 0.0f, 0.0f, 0.5f )},	// 0
-		{glm::vec4( 0.5f,-0.5f, 0.5f, 1.0f ),glm::vec4( 1.0f, 0.0f, 0.0f, 0.5f )},	// 1
-		{glm::vec4( 0.5f, 0.5f, 0.5f, 1.0f ),glm::vec4( 1.0f, 0.0f, 0.0f, 0.5f )},	// 2
-		{glm::vec4( -0.5f, 0.5f, 0.5f, 1.0f),glm::vec4( 1.0f, 0.0f, 0.0f, 0.5f )},	// 3
-	};
-
-	unsigned char indices[] = {
-		0, 1, 2,	0, 2, 3			// front facme
-	};
-
-	m_IndicesCount = sizeof(indices) / sizeof(unsigned char);
-
-	// Generate the VAO and Bind bind it.
-	// Our VBO (vertex buffer object) and IBO (Index Buffer Object) will be "grouped" with this VAO
-	// other settings will also be grouped with the VAO. this is used so we can reduce draw calls in the render method.
-	glGenVertexArrays(1, &m_Vao);
-	glBindVertexArray(m_Vao);
-
-	// Create our VBO and IBO.
-	// Then tell Opengl what type of buffer they are used for
-	// VBO a buffer in graphics memory to contains our vertices
-	// IBO a buffer in graphics memory to contain our indices.
-	// Then Fill the buffers with our generated data.
-	// This is taking our verts and indices from ram, and sending them to the graphics card
-	glGenBuffers(1, &m_Vbo);
-	glGenBuffers(1, &m_Ibo);
-
-	glBindBuffer(GL_ARRAY_BUFFER, m_Vbo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Ibo);
-
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-	Vertex::SetupVertexAttribPointers();
-
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	//unsigned char indices[] = {
+	//	0, 1, 2,	0, 2, 3			// front facme
+	//};
+	//
+	//m_IndicesCount = sizeof(indices) / sizeof(unsigned char);
+	//
+	//// Generate the VAO and Bind bind it.
+	//// Our VBO (vertex buffer object) and IBO (Index Buffer Object) will be "grouped" with this VAO
+	//// other settings will also be grouped with the VAO. this is used so we can reduce draw calls in the render method.
+	//glGenVertexArrays(1, &m_Vao);
+	//glBindVertexArray(m_Vao);
+	//
+	//// Create our VBO and IBO.
+	//// Then tell Opengl what type of buffer they are used for
+	//// VBO a buffer in graphics memory to contains our vertices
+	//// IBO a buffer in graphics memory to contain our indices.
+	//// Then Fill the buffers with our generated data.
+	//// This is taking our verts and indices from ram, and sending them to the graphics card
+	//glGenBuffers(1, &m_Vbo);
+	//glGenBuffers(1, &m_Ibo);
+	//
+	//glBindBuffer(GL_ARRAY_BUFFER, m_Vbo);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Ibo);
+	//
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	//
+	//Vertex::SetupVertexAttribPointers();
+	//
+	//glBindVertexArray(0);
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void LandscapeApp::Vertex::SetupVertexAttribPointers()
@@ -270,16 +283,14 @@ void LandscapeApp::Vertex::SetupVertexAttribPointers()
 		(void*)0            // offset - bytes from the beginning of the vertex
 	);
 
-	// enable vertex color element
-	// notice when we loaded the shader, we described the "color" element to be location 1.
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(
-		1,                  // attribute 1 (color)
-		4,                  // size - how many floats make up the color (r, g, b, a)
-		GL_FLOAT,           // type - our x,y,z are float values
-		GL_FALSE,           // normalized? - not used
-		sizeof(Vertex),     // stride - size of an entire vertex
-		(void*)(sizeof(float) * 4)            // offset - bytes from the beginning of the vertex
+		1,                  
+		2,                 
+		GL_FLOAT,           
+		GL_FALSE,           
+		sizeof(Vertex),     
+		(void*)(sizeof(float) * 4)
 	);
 }
 
@@ -295,18 +306,26 @@ void LandscapeApp::CreateLandscape()
 {
 	std::vector<Vertex> verts;
 	std::vector<unsigned short> indices;
+
+	//const unsigned char* pixels = m_heightMap->getPixels();
 	//Create grid of vertices
 	for (int i = 0; i < M_LAND_DEPTH; i++)
 	{
 		for (int j = 0; j < M_LAND_WIDTH; j++)
 		{
+			int k = i * M_LAND_WIDTH + j;
+
 			//position of vertex
 			float xPos = (j * 0.1f) - (M_LAND_WIDTH * 0.1f * 0.5f);
-			float yPos = 0.0f;
+			float yPos = /*(pixels[k * 3] / 255.0f) * 3*/0; // ----
 			float zPos = (i * 0.1f) - (M_LAND_DEPTH * 0.1f * 0.5f);
+
+			float u = (float)j / (M_LAND_WIDTH - 1);
+			float v = (float)i / (M_LAND_DEPTH - 1);
 			Vertex vert{
 				glm::vec4(xPos,yPos,zPos,1.0f),//Position
-				glm::vec4(1.0f,1.0f,1.0f,1.0f)//Colour
+				//glm::vec4(1,1,1,1)//Colour
+				glm::vec2(u,v)
 			};
 			verts.push_back(vert);
 		}
@@ -368,5 +387,6 @@ void LandscapeApp::DestroyLandscape()
 void LandscapeApp::DrawLandscape()
 {
 	glDrawElements(GL_TRIANGLES, m_IndicesCount, GL_UNSIGNED_SHORT, 0);
+	//CreateLandscape();
 
 }

@@ -1,9 +1,12 @@
 #pragma once
 
 #include "Application.h"
-#include <glm/mat4x4.hpp>
-#include "Camera.h"
-
+#include <glm/glm.hpp>
+class Camera;
+namespace aie
+{
+	class Texture;
+}
 class LandscapeApp : public aie::Application {
 public:
 
@@ -30,7 +33,9 @@ public:
 	void DrawLandscape();
 
 protected:
-	Camera *m_camera;
+	Camera* m_camera;
+	aie::Texture* m_texture;
+	//aie::Texture* m_heightMap;
 
 	glm::mat4	m_viewMatrix;
 	glm::mat4	m_projectionMatrix;
@@ -49,8 +54,7 @@ protected:
 	struct Vertex
 	{
 		glm::vec4 pos;
-		glm::vec4 col;
-
+		glm::vec2 uv;
 		static void SetupVertexAttribPointers();
 	};
 
