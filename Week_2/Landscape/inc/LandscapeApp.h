@@ -49,8 +49,9 @@ protected:
 	unsigned int m_Vbo;
 	unsigned int m_Ibo;
 
-	const int M_LAND_WIDTH = 128, M_LAND_DEPTH = 128;
-
+	const int M_LAND_WIDTH = 512, M_LAND_DEPTH = 512;
+	const float m_vertSeperation = 0.1f;
+	const float m_maxHeight = 3.0f;
 	struct Vertex
 	{
 		glm::vec4 pos;

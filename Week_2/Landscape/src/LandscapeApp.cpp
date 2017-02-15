@@ -305,7 +305,7 @@ void LandscapeApp::DestroyCube()
 void LandscapeApp::CreateLandscape()
 {
 	std::vector<Vertex> verts;
-	std::vector<unsigned short> indices;
+	std::vector<unsigned int> indices;
 
 	const unsigned char* pixels = m_heightMap->getPixels();
 	
@@ -314,12 +314,17 @@ void LandscapeApp::CreateLandscape()
 	{
 		for (int j = 0; j < M_LAND_WIDTH; j++)
 		{
-			int k = i * M_LAND_WIDTH + j;
+
+			int sampleX = (float) j / M_LAND_WIDTH * m_heightMap->getWidth();
+			int sampleZ = (float) i / M_LAND_DEPTH * m_heightMap->getHeight();
+
+
+			int k = sampleZ * m_heightMap->getWidth() + sampleX;
 
 			//position of vertex
-			float xPos = (j * 0.1f) - (M_LAND_WIDTH * 0.1f * 0.5f);
-			float yPos = (pixels[k * 3] / 255.0f) * 3;
-			float zPos = (i * 0.1f) - (M_LAND_DEPTH * 0.1f * 0.5f);
+			float xPos = (j * m_vertSeperation) - (M_LAND_WIDTH * m_vertSeperation * 0.5f);
+			float yPos = (pixels[k * 3] / 255.0f) * m_maxHeight;
+			float zPos = (i * m_vertSeperation) - (M_LAND_DEPTH * m_vertSeperation * 0.5f);
 
 			float u = (float)j / (M_LAND_WIDTH - 1);
 			float v = (float)i / (M_LAND_DEPTH - 1);
@@ -369,7 +374,7 @@ void LandscapeApp::CreateLandscape()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Ibo);
 
 	glBufferData(GL_ARRAY_BUFFER, m_vertCount * sizeof(Vertex), &verts[0], GL_STATIC_DRAW);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_IndicesCount * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_IndicesCount * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
 	Vertex::SetupVertexAttribPointers();
 
@@ -387,7 +392,7 @@ void LandscapeApp::DestroyLandscape()
 
 void LandscapeApp::DrawLandscape()
 {
-	glDrawElements(GL_TRIANGLES, m_IndicesCount, GL_UNSIGNED_SHORT, 0);
+	glDrawElements(GL_TRIANGLES, m_IndicesCount, GL_UNSIGNED_INT, 0);
 	//CreateLandscape();
 
 }
