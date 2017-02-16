@@ -97,7 +97,16 @@ void Camera::CalculateLook()
 {
 	//some circle geometry maths to convert the viewing angle from
 	//Yaw, Pitch and Roll into a single normalized vector
-
+	
+	//Protect against gimbal lock
+	if (m_pitch >= 90)
+	{
+		m_pitch = 89.9;
+	}
+	if (m_pitch <= -90)
+	{
+		m_pitch = -89.9;
+	}
 	glm::vec3 look;
 	look.x = glm::cos(glm::radians(m_yaw)) * glm::cos(glm::radians(m_pitch));
 	look.y = glm::sin(glm::radians(m_pitch)) * glm::cos(glm::radians(m_roll));

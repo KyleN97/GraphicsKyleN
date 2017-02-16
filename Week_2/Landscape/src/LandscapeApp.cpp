@@ -92,20 +92,24 @@ void LandscapeApp::shutdown() {
 
 void LandscapeApp::update(float deltaTime) {
 
+	Gizmos::clear();
 	// query time since application started
 	float time = getTime();
 
 	//Control Camera
 	m_camera->Update(deltaTime);
-	m_lightPosition = glm::vec3(vec3(glm::sin(time) * 10, 10, glm::cos(time) * 10));
+
+	const mat4 sphereMat = /*glm::rotate(0.0f * time,glm::vec3(0,5,0)) **/ glm::translate(glm::vec3(vec3(glm::sin(time) * 3, 3, glm::cos(time) * 3)));//translate the sphere in an orbit 3 wide and 3 high
+	
+
+
+	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 64, vec4(1, 0, 0, 0.5f), &sphereMat);
+	m_lightPosition = /*glm::vec3(vec3(glm::sin(time) * 10, 10, glm::cos(time) * 10))*/sphereMat[3].xyz;
 	shader->Bind();
 	// wipe the gizmos clean for this frame
-	Gizmos::clear();
 
 	//Gizmos::addTransform(mat4(1));
 
-	
-	Gizmos::addSphere(vec3(0, 0, 5), .5, 64, 64, vec4(1, 0, 0, 0.5f));
 
 
 	//DrawGrid();
