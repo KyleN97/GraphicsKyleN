@@ -16,7 +16,7 @@ See the DrawGeometry method
 STEP 4: Unload Shader and Geometry
 -------------------------------------------------------------------------------
 */
-
+#define GLM_SWIZZLE
 #include "LandscapeApp.h"
 #include "Gizmos.h"
 #include <imgui.h>
@@ -46,26 +46,33 @@ bool LandscapeApp::startup() {
 	
 	setBackgroundColour(0.25f, 0.25f, 0.25f);
 
-	// initialize gizmo primitive counts
+	//---initialize gizmo primitive counts---
 	//Gizmos::create(10000, 10000, 10000, 10000);
 
-	//Setup camera starting position and where it's looking
+	//---Setup camera starting position and where it's looking---
 	m_camera = new Camera();
 	m_camera->SetPosition(glm::vec3(5.0f,5.0f,5.0f));
 	m_camera->LookAt(glm::vec3(0.0f,0.0f,0.0f));
-	//setup light
+
+	//---setup light---
 	m_lightPosition = glm::vec3(0.0f,5.0f,0.0f);
-	m_lightColor = glm::vec3(0,255,8);
-	m_lightAmbientStrength = 0.2f;
-	//load texture
+	m_lightColor = glm::vec3(1,0,0);
+	m_lightAmbientStrength = 0.05f;
+
+	//---load texture---
 	m_texture = new aie::Texture();
 	m_texture->load("Landscape/Textures/Tile.png");
 
-	//load heightmap
+	//---load heightmap---
 	m_heightMap = new aie::Texture();
 	m_heightMap->load("Landscape/Textures/heightmap.bmp");
+
 	//LoadShader();
+
+	//--Load in shader from file and check the errors and put to console---
 	shader = new Shader("Landscape/Shaders/basicShader");
+
+	//---Create the landscape---
 	CreateLandscape();
 
 	glEnable(GL_BLEND);
@@ -76,10 +83,11 @@ bool LandscapeApp::startup() {
 
 void LandscapeApp::shutdown() {
 	DestroyLandscape();
-	UnloadShader();
-
-	//Gizmos::destroy();
+	delete shader;
 	delete m_camera;
+	//Gizmos::destroy();
+	//UnloadShader();
+
 }
 
 void LandscapeApp::update(float deltaTime) {
@@ -89,6 +97,7 @@ void LandscapeApp::update(float deltaTime) {
 
 	//Control Camera
 	m_camera->Update(deltaTime);
+	m_lightPosition = glm::vec3(vec3(glm::sin(time) * 10, 10, glm::cos(time) * 10));
 	shader->Bind();
 	// wipe the gizmos clean for this frame
 	//Gizmos::clear();
@@ -170,133 +179,6 @@ void LandscapeApp::draw() {
 	//Gizmos::draw(m_projectionMatrix * m_camera->GetView());
 }
 
-void LandscapeApp::LoadShader()
-{
-	//static const char* vertex_shader =
-	//	"#version 400\n								\
-	//in vec4 vPosition;\n							\
-	//in vec2 vUv;\n									\
-	//in vec4 vNormal;\n								\
-	//out vec2 fUv;\n 								\
-	//out vec3 fPos;\n 								\
-	//out vec4 fNormal;\n 							\
-	//uniform mat4 projectionView; \n					\
-	//void main ()\n									\
-	//{\n												\
-	//	fNormal = vNormal;\n						\
-	//	fPos = vPosition.xyz;\n						\
-	//	fUv = vUv;\n								\
-	//  gl_Position = projectionView * vPosition;\n	\
-	//}";												
-	//
-	//static const char* fragment_shader =
-	//	"#version 400\n											\
-	//in vec2 fUv;\n												\
-	//in vec3 fPos;\n 											\
-	//in vec4 fNormal;\n 											\
-	//out vec4 frag_color;\n										\
-	//uniform sampler2D texture;\n								\
-	//uniform float lightAmbientStrength;\n						\
-	//uniform vec3 lightPosition;\n								\
-	//uniform vec3 lightColor;\n									\
-	//void main ()\n												\
-	//{\n															\
-	//  vec3 norm = normalize(fNormal.xyz);\n						\
-	//  vec3 lightDir = normalize(fPos - lightPosition);\n		\
-	//  float diff = max(dot(norm,lightDir),0.0f);\n				\
-	//  vec3 diffColor = diff * lightColor;\n						\
-	//  vec3 ambient = lightColor * lightAmbientStrength;\n		\
-	//  frag_color = texture2D(texture,fUv) * vec4(ambient + diffColor,1.0);\n\
-	//}";
-	//
-	//// Step 1:
-	//// Load the vertex shader, provide it with the source code and compile it.
-	//GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-	//glShaderSource(vs, 1, &vertex_shader, NULL);
-	//glCompileShader(vs);
-	//
-	//// Step 2:
-	//// Load the fragment shader, provide it with the source code and compile it.
-	//GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-	//glShaderSource(fs, 1, &fragment_shader, NULL);
-	//glCompileShader(fs);
-	//
-	//// step 3:
-	//// Create the shader program
-	//m_shader = glCreateProgram();
-	//
-	//// Step 4:
-	//// attach the vertex and fragment shaders to the m_shader program
-	//glAttachShader(m_shader, vs);
-	//glAttachShader(m_shader, fs);
-	//
-	//// Step 5:
-	//// describe the location of the shader inputs the link the program
-	//glBindAttribLocation(m_shader, 0, "vPosition");
-	//glBindAttribLocation(m_shader, 1, "vUv");
-	//glBindAttribLocation(m_shader, 2, "vNormal");
-	//
-	//glLinkProgram(m_shader);
-	//
-	//// step 6:
-	//// delete the vs and fs shaders
-	//glDeleteShader(vs);
-	//glDeleteShader(fs);
-
-
-}
-
-void LandscapeApp::UnloadShader()
-{
-	glDeleteProgram(shader->m_program);
-}
-
-void LandscapeApp::CreateCube()
-{
-	//Vertex verts[] = {
-	//
-	//	// POSITION						COLOR
-	//	// FRONT FACE				  - RED
-	//	{glm::vec4(-0.5f,-0.5f, 0.5f, 1.0f),glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)},	// 0
-	//	{glm::vec4(0.5f,-0.5f, 0.5f, 1.0f),glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)},	// 1
-	//	{glm::vec4(0.5f, 0.5f, 0.5f, 1.0f),glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)},	// 2
-	//	{glm::vec4(-0.5f, 0.5f, 0.5f, 1.0f),glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)},	// 3
-	//};
-
-	//unsigned char indices[] = {
-	//	0, 1, 2,	0, 2, 3			// front facme
-	//};
-	//
-	//m_IndicesCount = sizeof(indices) / sizeof(unsigned char);
-	//
-	//// Generate the VAO and Bind bind it.
-	//// Our VBO (vertex buffer object) and IBO (Index Buffer Object) will be "grouped" with this VAO
-	//// other settings will also be grouped with the VAO. this is used so we can reduce draw calls in the render method.
-	//glGenVertexArrays(1, &m_Vao);
-	//glBindVertexArray(m_Vao);
-	//
-	//// Create our VBO and IBO.
-	//// Then tell Opengl what type of buffer they are used for
-	//// VBO a buffer in graphics memory to contains our vertices
-	//// IBO a buffer in graphics memory to contain our indices.
-	//// Then Fill the buffers with our generated data.
-	//// This is taking our verts and indices from ram, and sending them to the graphics card
-	//glGenBuffers(1, &m_Vbo);
-	//glGenBuffers(1, &m_Ibo);
-	//
-	//glBindBuffer(GL_ARRAY_BUFFER, m_Vbo);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Ibo);
-	//
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-	//
-	//Vertex::SetupVertexAttribPointers();
-	//
-	//glBindVertexArray(0);
-	//glBindBuffer(GL_ARRAY_BUFFER, 0);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-}
-
 void LandscapeApp::Vertex::SetupVertexAttribPointers()
 {
 	// enable vertex position element
@@ -332,14 +214,6 @@ void LandscapeApp::Vertex::SetupVertexAttribPointers()
 	);
 }
 
-void LandscapeApp::DestroyCube()
-{
-	// When We're Done, destroy the geometry
-	glDeleteBuffers(1, &m_Ibo);
-	glDeleteBuffers(1, &m_Vbo);
-	glDeleteVertexArrays(1, &m_Vao);
-}
-
 void LandscapeApp::CreateLandscape()
 {
 	std::vector<Vertex> verts;
@@ -361,7 +235,7 @@ void LandscapeApp::CreateLandscape()
 
 			//position of vertex
 			float xPos = (j * m_vertSeperation) - (M_LAND_WIDTH * m_vertSeperation * 0.5f);
-			float yPos = /*(pixels[k * 3] / 255.0f) * m_maxHeight*/0;
+			float yPos = (pixels[k * 3] / 255.0f) * m_maxHeight;
 			float zPos = (i * m_vertSeperation) - (M_LAND_DEPTH * m_vertSeperation * 0.5f);
 
 			float u = (float)j / (M_LAND_WIDTH - 1);
@@ -374,6 +248,7 @@ void LandscapeApp::CreateLandscape()
 			verts.push_back(vert);
 		}
 	}
+	glm::vec3 normals;
 	//calculate indices for triangles
 	for (int i = 0;i < M_LAND_DEPTH - 1;i++)
 	{
@@ -381,15 +256,32 @@ void LandscapeApp::CreateLandscape()
 		{
 			int k = i * M_LAND_WIDTH + j;//the address of the vertices in the single dimesion vector
 			
-			indices.push_back(k + 1);			//b--a
-			indices.push_back(k);				//| /
-			indices.push_back(k + M_LAND_WIDTH);//c
+			indices.push_back(k + 1);						//b--a
+			indices.push_back(k);							//| /
+			indices.push_back(k + M_LAND_WIDTH);			//
+			
+			indices.push_back(k + 1);			//				 a
+			indices.push_back(k + M_LAND_WIDTH);//				/ |
+			indices.push_back(k + M_LAND_WIDTH + 1);		// c--d
 
-			indices.push_back(k + 1);			//	  a
-			indices.push_back(k + M_LAND_WIDTH);//  / |
-			indices.push_back(k +M_LAND_WIDTH+ 1);			// b--c
+			glm::vec3 A = (glm::vec3)(verts[k + 1].pos);
+			glm::vec3 B = (glm::vec3)(verts[k].pos);
+			glm::vec3 C = (glm::vec3)(verts[k + M_LAND_WIDTH].pos);
+			glm::vec3 D = (glm::vec3)(verts[k + M_LAND_WIDTH + 1].pos);
+			normals = glm::cross(C - B, A - B);
+			normals += glm::cross(B - A, C - A);
+			normals += glm::cross(B - C, A - C);
+
+			normals += glm::cross(D - A, C - A);
+			normals += glm::cross(D - C, A - C);
+			normals += glm::cross(A - D, C - D);
+
+			glm::normalize(normals);
+			verts[k].vNormal = glm::vec4(normals, 0.0f);
+
 		}
 	}
+
 	m_vertCount = verts.size();
 	m_IndicesCount = indices.size();
 
@@ -426,11 +318,147 @@ void LandscapeApp::CreateLandscape()
 
 void LandscapeApp::DestroyLandscape()
 {
+	delete m_texture;
+	delete m_heightMap;
 }
 
 void LandscapeApp::DrawLandscape()
 {
 	glDrawElements(GL_TRIANGLES, m_IndicesCount, GL_UNSIGNED_INT, 0);
-	//CreateLandscape();
 
 }
+
+/*void LandscapeApp::LoadShader()
+{
+static const char* vertex_shader =
+"#version 400\n								\
+in vec4 vPosition;\n							\
+in vec2 vUv;\n									\
+in vec4 vNormal;\n								\
+out vec2 fUv;\n 								\
+out vec3 fPos;\n 								\
+out vec4 fNormal;\n 							\
+uniform mat4 projectionView; \n					\
+void main ()\n									\
+{\n												\
+fNormal = vNormal;\n						\
+fPos = vPosition.xyz;\n						\
+fUv = vUv;\n								\
+gl_Position = projectionView * vPosition;\n	\
+}";
+
+static const char* fragment_shader =
+"#version 400\n											\
+in vec2 fUv;\n												\
+in vec3 fPos;\n 											\
+in vec4 fNormal;\n 											\
+out vec4 frag_color;\n										\
+uniform sampler2D texture;\n								\
+uniform float lightAmbientStrength;\n						\
+uniform vec3 lightPosition;\n								\
+uniform vec3 lightColor;\n									\
+void main ()\n												\
+{\n															\
+vec3 norm = normalize(fNormal.xyz);\n						\
+vec3 lightDir = normalize(fPos - lightPosition);\n		\
+float diff = max(dot(norm,lightDir),0.0f);\n				\
+vec3 diffColor = diff * lightColor;\n						\
+vec3 ambient = lightColor * lightAmbientStrength;\n		\
+frag_color = texture2D(texture,fUv) * vec4(ambient + diffColor,1.0);\n\
+}";
+
+// Step 1:
+// Load the vertex shader, provide it with the source code and compile it.
+GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+glShaderSource(vs, 1, &vertex_shader, NULL);
+glCompileShader(vs);
+
+// Step 2:
+// Load the fragment shader, provide it with the source code and compile it.
+GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+glShaderSource(fs, 1, &fragment_shader, NULL);
+glCompileShader(fs);
+
+// step 3:
+// Create the shader program
+m_shader = glCreateProgram();
+
+// Step 4:
+// attach the vertex and fragment shaders to the m_shader program
+glAttachShader(m_shader, vs);
+glAttachShader(m_shader, fs);
+
+// Step 5:
+// describe the location of the shader inputs the link the program
+glBindAttribLocation(m_shader, 0, "vPosition");
+glBindAttribLocation(m_shader, 1, "vUv");
+glBindAttribLocation(m_shader, 2, "vNormal");
+
+glLinkProgram(m_shader);
+
+// step 6:
+// delete the vs and fs shaders
+glDeleteShader(vs);
+glDeleteShader(fs);
+
+
+}*/
+
+/*void LandscapeApp::UnloadShader()
+{
+glDeleteProgram(shader->m_program);
+}*/
+
+/*void LandscapeApp::CreateCube()
+{
+Vertex verts[] = {
+
+// POSITION						COLOR
+// FRONT FACE				  - RED
+{glm::vec4(-0.5f,-0.5f, 0.5f, 1.0f),glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)},	// 0
+{glm::vec4(0.5f,-0.5f, 0.5f, 1.0f),glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)},	// 1
+{glm::vec4(0.5f, 0.5f, 0.5f, 1.0f),glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)},	// 2
+{glm::vec4(-0.5f, 0.5f, 0.5f, 1.0f),glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)},	// 3
+};
+
+unsigned char indices[] = {
+0, 1, 2,	0, 2, 3			// front facme
+};
+
+m_IndicesCount = sizeof(indices) / sizeof(unsigned char);
+
+// Generate the VAO and Bind bind it.
+// Our VBO (vertex buffer object) and IBO (Index Buffer Object) will be "grouped" with this VAO
+// other settings will also be grouped with the VAO. this is used so we can reduce draw calls in the render method.
+glGenVertexArrays(1, &m_Vao);
+glBindVertexArray(m_Vao);
+
+// Create our VBO and IBO.
+// Then tell Opengl what type of buffer they are used for
+// VBO a buffer in graphics memory to contains our vertices
+// IBO a buffer in graphics memory to contain our indices.
+// Then Fill the buffers with our generated data.
+// This is taking our verts and indices from ram, and sending them to the graphics card
+glGenBuffers(1, &m_Vbo);
+glGenBuffers(1, &m_Ibo);
+
+glBindBuffer(GL_ARRAY_BUFFER, m_Vbo);
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Ibo);
+
+glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+Vertex::SetupVertexAttribPointers();
+
+glBindVertexArray(0);
+glBindBuffer(GL_ARRAY_BUFFER, 0);
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}*/
+
+/*void LandscapeApp::DestroyCube()
+{
+// When We're Done, destroy the geometry
+glDeleteBuffers(1, &m_Ibo);
+glDeleteBuffers(1, &m_Vbo);
+glDeleteVertexArrays(1, &m_Vao);
+}*/

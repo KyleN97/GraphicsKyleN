@@ -22,11 +22,11 @@ public:
 
 	void DrawGrid();
 
-	void LoadShader();
-	void UnloadShader();
+	/*void LoadShader();*/
+	/*void UnloadShader();*/
 
-	void CreateCube();
-	void DestroyCube();
+	/*void CreateCube();*/
+	/*void DestroyCube();*/
 
 	void CreateLandscape();
 	void DestroyLandscape();
@@ -51,9 +51,9 @@ protected:
 	unsigned int m_Vbo;
 	unsigned int m_Ibo;
 
-	const int M_LAND_WIDTH = 512, M_LAND_DEPTH = 512;
+	const int M_LAND_WIDTH = 128, M_LAND_DEPTH = 128;
 	const float m_vertSeperation = 0.1f;
-	const float m_maxHeight = 3.0f;
+	const float m_maxHeight = 2;
 
 	glm::vec3 m_lightPosition;
 	glm::vec3 m_lightColor;

@@ -10,7 +10,7 @@ uniform vec3 lightColor;
 void main ()												
 {															
   vec3 norm = normalize(fNormal.xyz);					
-  vec3 lightDir = normalize(fPos - lightPosition);		
+  vec3 lightDir = normalize(lightPosition - fPos);		
   float diff = max(dot(norm,lightDir),0.0f);				
   vec3 diffColor = diff * lightColor;				
   vec3 ambient = lightColor * lightAmbientStrength;		
