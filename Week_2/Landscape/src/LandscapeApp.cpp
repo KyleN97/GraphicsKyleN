@@ -45,9 +45,9 @@ LandscapeApp::~LandscapeApp() {
 bool LandscapeApp::startup() {
 	
 	setBackgroundColour(0.25f, 0.25f, 0.25f);
-
+	const glm::mat4* transform;
 	//---initialize gizmo primitive counts---
-	//Gizmos::create(10000, 10000, 10000, 10000);
+	Gizmos::create(10000, 10000, 10000, 10000);
 
 	//---Setup camera starting position and where it's looking---
 	m_camera = new Camera();
@@ -100,7 +100,13 @@ void LandscapeApp::update(float deltaTime) {
 	m_lightPosition = glm::vec3(vec3(glm::sin(time) * 10, 10, glm::cos(time) * 10));
 	shader->Bind();
 	// wipe the gizmos clean for this frame
-	//Gizmos::clear();
+	Gizmos::clear();
+
+	//Gizmos::addTransform(mat4(1));
+
+	
+	Gizmos::addSphere(vec3(0, 0, 5), .5, 64, 64, vec4(1, 0, 0, 0.5f));
+
 
 	//DrawGrid();
 	
@@ -176,7 +182,7 @@ void LandscapeApp::draw() {
 	// Step 6: de-activate the shader program, dont do future rendering with it any more.
 	glUseProgram(0);
 
-	//Gizmos::draw(m_projectionMatrix * m_camera->GetView());
+	Gizmos::draw(m_projectionMatrix * m_camera->GetView());
 }
 
 void LandscapeApp::Vertex::SetupVertexAttribPointers()
