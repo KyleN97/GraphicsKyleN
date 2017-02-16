@@ -12,7 +12,7 @@ void main ()
   vec3 norm = normalize(fNormal.xyz);					
   vec3 lightDir = normalize(fPos - lightPosition);		
   float diff = max(dot(norm,lightDir),0.0f);				
-  vec3 diffColor = diff * lightColor;\				
+  vec3 diffColor = diff * lightColor;				
   vec3 ambient = lightColor * lightAmbientStrength;		
   frag_color = texture2D(texture,fUv) * vec4(ambient + diffColor,1.0);
 };
