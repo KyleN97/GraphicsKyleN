@@ -19,13 +19,15 @@ STEP 4: Unload Shader and Geometry
 
 #include "LandscapeApp.h"
 #include "Gizmos.h"
+#include <imgui.h>
 #include "Input.h"
 #include "Camera.h"
 #include <Texture.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
-
+#include <imgui.h>
 #include "gl_core_4_4.h"
+#include "Shader.h"
 
 using glm::vec3;
 using glm::vec4;
@@ -51,6 +53,10 @@ bool LandscapeApp::startup() {
 	m_camera = new Camera();
 	m_camera->SetPosition(glm::vec3(5.0f,5.0f,5.0f));
 	m_camera->LookAt(glm::vec3(0.0f,0.0f,0.0f));
+	//setup light
+	m_lightPosition = glm::vec3(0.0f,5.0f,0.0f);
+	m_lightColor = glm::vec3(0,255,8);
+	m_lightAmbientStrength = 0.2f;
 	//load texture
 	m_texture = new aie::Texture();
 	m_texture->load("Landscape/Textures/Tile.png");
@@ -58,7 +64,8 @@ bool LandscapeApp::startup() {
 	//load heightmap
 	m_heightMap = new aie::Texture();
 	m_heightMap->load("Landscape/Textures/heightmap.bmp");
-	LoadShader();
+	//LoadShader();
+	shader = new Shader("Landscape/Shaders/basicShader");
 	CreateLandscape();
 
 	glEnable(GL_BLEND);
@@ -82,13 +89,13 @@ void LandscapeApp::update(float deltaTime) {
 
 	//Control Camera
 	m_camera->Update(deltaTime);
-
+	shader->Bind();
 	// wipe the gizmos clean for this frame
 	//Gizmos::clear();
 
 	//DrawGrid();
 	
-
+	shader->Bind();
 	// quit if we press escape
 	aie::Input* input = aie::Input::getInstance();
 
@@ -123,12 +130,12 @@ void LandscapeApp::draw() {
 										  0.1f, 1000.f);
 
 	// STEP 1: enable the shader program for rendering
-	glUseProgram(m_shader);
+	glUseProgram(shader->m_program);
 
 	// Step 2: send uniform variables to the shader
 	glm::mat4 projectionView = m_projectionMatrix * m_camera->GetView();
 	glUniformMatrix4fv(
-		glGetUniformLocation(m_shader, "projectionView"), 
+		glGetUniformLocation(shader->m_program, "projectionView"),
 		1, 
 		false, 
 		glm::value_ptr(projectionView));
@@ -136,8 +143,12 @@ void LandscapeApp::draw() {
 	//also set it up as a uniform variable for shader
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_texture->getHandle());
-	glUniform1i(glGetUniformLocation(m_shader,"texture"),0);
+	glUniform1i(glGetUniformLocation(shader->m_program,"texture"),0);
 	// Step 3: Bind the VAO
+	glUniform1f(glGetUniformLocation(shader->m_program, "lightAmbientStrength"), m_lightAmbientStrength);
+	glUniform3fv(glGetUniformLocation(shader->m_program, "lightPosition"),1, &m_lightPosition[0]);
+	glUniform3fv(glGetUniformLocation(shader->m_program, "lightColor"),1, &m_lightColor[0]);
+
 	// When we setup the geometry, we did a bunch of glEnableVertexAttribArray and glVertexAttribPointer method calls
 	// we also Bound the vertex array and index array via the glBindBuffer call.
 	// if we where not using VAO's we would have to do thoes method calls each frame here.
@@ -161,66 +172,83 @@ void LandscapeApp::draw() {
 
 void LandscapeApp::LoadShader()
 {
-	static const char* vertex_shader =
-		"#version 400\n								\
-	in vec4 vPosition;\n							\
-	in vec2 vUv;\n									\
-	out vec2 fUv;\n 								\
-	uniform mat4 projectionView; \n					\
-	void main ()\n									\
-	{\n												\
-		fUv = vUv;\n								\
-	  gl_Position = projectionView * vPosition;\n	\
-	}";												
-
-	static const char* fragment_shader =
-		"#version 400\n						\
-	in vec2 fUv;\n							\
-	out vec4 frag_color;\n					\
-	uniform sampler2D texture;\n			\
-	void main ()\n							\
-	{\n										\
-	  frag_color = texture2D(texture,fUv);\n\
-	}";
-
-	// Step 1:
-	// Load the vertex shader, provide it with the source code and compile it.
-	GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vs, 1, &vertex_shader, NULL);
-	glCompileShader(vs);
-
-	// Step 2:
-	// Load the fragment shader, provide it with the source code and compile it.
-	GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fs, 1, &fragment_shader, NULL);
-	glCompileShader(fs);
-
-	// step 3:
-	// Create the shader program
-	m_shader = glCreateProgram();
-
-	// Step 4:
-	// attach the vertex and fragment shaders to the m_shader program
-	glAttachShader(m_shader, vs);
-	glAttachShader(m_shader, fs);
-
-	// Step 5:
-	// describe the location of the shader inputs the link the program
-	glBindAttribLocation(m_shader, 0, "vPosition");
-	glBindAttribLocation(m_shader, 1, "vUv");
-	glLinkProgram(m_shader);
-
-	// step 6:
-	// delete the vs and fs shaders
-	glDeleteShader(vs);
-	glDeleteShader(fs);
+	//static const char* vertex_shader =
+	//	"#version 400\n								\
+	//in vec4 vPosition;\n							\
+	//in vec2 vUv;\n									\
+	//in vec4 vNormal;\n								\
+	//out vec2 fUv;\n 								\
+	//out vec3 fPos;\n 								\
+	//out vec4 fNormal;\n 							\
+	//uniform mat4 projectionView; \n					\
+	//void main ()\n									\
+	//{\n												\
+	//	fNormal = vNormal;\n						\
+	//	fPos = vPosition.xyz;\n						\
+	//	fUv = vUv;\n								\
+	//  gl_Position = projectionView * vPosition;\n	\
+	//}";												
+	//
+	//static const char* fragment_shader =
+	//	"#version 400\n											\
+	//in vec2 fUv;\n												\
+	//in vec3 fPos;\n 											\
+	//in vec4 fNormal;\n 											\
+	//out vec4 frag_color;\n										\
+	//uniform sampler2D texture;\n								\
+	//uniform float lightAmbientStrength;\n						\
+	//uniform vec3 lightPosition;\n								\
+	//uniform vec3 lightColor;\n									\
+	//void main ()\n												\
+	//{\n															\
+	//  vec3 norm = normalize(fNormal.xyz);\n						\
+	//  vec3 lightDir = normalize(fPos - lightPosition);\n		\
+	//  float diff = max(dot(norm,lightDir),0.0f);\n				\
+	//  vec3 diffColor = diff * lightColor;\n						\
+	//  vec3 ambient = lightColor * lightAmbientStrength;\n		\
+	//  frag_color = texture2D(texture,fUv) * vec4(ambient + diffColor,1.0);\n\
+	//}";
+	//
+	//// Step 1:
+	//// Load the vertex shader, provide it with the source code and compile it.
+	//GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+	//glShaderSource(vs, 1, &vertex_shader, NULL);
+	//glCompileShader(vs);
+	//
+	//// Step 2:
+	//// Load the fragment shader, provide it with the source code and compile it.
+	//GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+	//glShaderSource(fs, 1, &fragment_shader, NULL);
+	//glCompileShader(fs);
+	//
+	//// step 3:
+	//// Create the shader program
+	//m_shader = glCreateProgram();
+	//
+	//// Step 4:
+	//// attach the vertex and fragment shaders to the m_shader program
+	//glAttachShader(m_shader, vs);
+	//glAttachShader(m_shader, fs);
+	//
+	//// Step 5:
+	//// describe the location of the shader inputs the link the program
+	//glBindAttribLocation(m_shader, 0, "vPosition");
+	//glBindAttribLocation(m_shader, 1, "vUv");
+	//glBindAttribLocation(m_shader, 2, "vNormal");
+	//
+	//glLinkProgram(m_shader);
+	//
+	//// step 6:
+	//// delete the vs and fs shaders
+	//glDeleteShader(vs);
+	//glDeleteShader(fs);
 
 
 }
 
 void LandscapeApp::UnloadShader()
 {
-	glDeleteProgram(m_shader);
+	glDeleteProgram(shader->m_program);
 }
 
 void LandscapeApp::CreateCube()
@@ -282,7 +310,7 @@ void LandscapeApp::Vertex::SetupVertexAttribPointers()
 		sizeof(Vertex),     // stride - size of an entire vertex
 		(void*)0            // offset - bytes from the beginning of the vertex
 	);
-
+	//tex coords
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(
 		1,                  
@@ -291,6 +319,16 @@ void LandscapeApp::Vertex::SetupVertexAttribPointers()
 		GL_FALSE,           
 		sizeof(Vertex),     
 		(void*)(sizeof(float) * 4)
+	);
+	//vertex normal
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(
+		2,
+		4,
+		GL_FLOAT,
+		GL_FALSE,
+		sizeof(Vertex),
+		(void*)(sizeof(float) * 6)
 	);
 }
 
@@ -323,15 +361,15 @@ void LandscapeApp::CreateLandscape()
 
 			//position of vertex
 			float xPos = (j * m_vertSeperation) - (M_LAND_WIDTH * m_vertSeperation * 0.5f);
-			float yPos = (pixels[k * 3] / 255.0f) * m_maxHeight;
+			float yPos = /*(pixels[k * 3] / 255.0f) * m_maxHeight*/0;
 			float zPos = (i * m_vertSeperation) - (M_LAND_DEPTH * m_vertSeperation * 0.5f);
 
 			float u = (float)j / (M_LAND_WIDTH - 1);
 			float v = (float)i / (M_LAND_DEPTH - 1);
 			Vertex vert{
 				glm::vec4(xPos,yPos,zPos,1.0f),//Position
-				//glm::vec4(1,1,1,1)//Colour
-				glm::vec2(u,v)
+				glm::vec2(u,v),//uv coords
+				glm::vec4(0.0f,1.0f,0.0f,0.0f)//normals
 			};
 			verts.push_back(vert);
 		}
