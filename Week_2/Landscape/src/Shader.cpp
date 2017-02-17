@@ -36,6 +36,9 @@ Shader::~Shader()
 void Shader::Bind()
 {
 	glUseProgram(m_program);
+	glBindAttribLocation(m_program, 0, "vPosition");
+	glBindAttribLocation(m_program, 1, "vUv");
+	glBindAttribLocation(m_program, 2, "vNormal");
 }
 
 

@@ -104,6 +104,7 @@ void LandscapeApp::update(float deltaTime) {
 	ImGui::Text("Camera Position");
 	ImGui::Text(glm::to_string(m_camera->GetPos()).c_str());
 	ImGui::DragFloat3("Light Color", glm::value_ptr(m_lightColor));
+	ImGui::DragFloat3("Spec Light Color", glm::value_ptr(m_lightSpecColor));
 	ImGui::Text("Sphere Orbit");
 	const mat4 sphereMat = /*glm::rotate(0.0f * time,glm::vec3(0,5,0)) **/ glm::translate(glm::vec3(vec3(glm::sin(time) * 3, 3, glm::cos(time) * 3)));//translate the sphere in an orbit 3 wide and 3 high
 

@@ -17,14 +17,18 @@ void main ()
   vec3 lightDir = normalize(lightPosition - fPos);		
   float diff = max(dot(norm,lightDir),0.0f);				
   vec3 diffColor = diff * lightColor;
-//ambient --START  
+	//ambient --START  
   vec3 ambient = lightColor * lightAmbientStrength;	
-//ambient --END  
+	//ambient --END  
 
+	
+	
   vec3 R = reflect(-lightDir,norm);
   vec3 E = normalize(camPos - fPos);
   float specTerm = pow(max(0.0f,dot(R,E)),specPower);
   vec3 Specular = lightSpecColor * specTerm;
   
-  frag_color = /*texture2D(texture,fUv) * */vec4(ambient + diffColor + Specular,1.0);
+  frag_color = texture2D(texture,fUv) * vec4(ambient + diffColor + Specular,1.0);
+  
+  
  };
