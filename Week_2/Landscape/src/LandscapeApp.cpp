@@ -44,6 +44,7 @@ LandscapeApp::~LandscapeApp() {
 
 bool LandscapeApp::startup() {
 	
+
 	setBackgroundColour(0.25f, 0.25f, 0.25f);
 	const glm::mat4* transform;
 	//---initialize gizmo primitive counts---
@@ -77,7 +78,7 @@ bool LandscapeApp::startup() {
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	return true;
 }
 
@@ -95,16 +96,28 @@ void LandscapeApp::update(float deltaTime) {
 	Gizmos::clear();
 	// query time since application started
 	float time = getTime();
+	static float wrap_width = 200.0f;
+	ImGui::Begin("Lighting Stats"); // begin second window
+	ImGui::SliderFloat("Specular Strength", &m_specPower, 0, 1000);
+	ImGui::Text("Light Position");
+	ImGui::Text(glm::to_string(m_lightPosition).c_str());
+	ImGui::Text("Camera Position");
+	ImGui::Text(glm::to_string(m_camera->GetPos()).c_str());
+	ImGui::DragFloat3("Light Color", glm::value_ptr(m_lightColor));
+	ImGui::Text("Sphere Orbit");
+	const mat4 sphereMat = /*glm::rotate(0.0f * time,glm::vec3(0,5,0)) **/ glm::translate(glm::vec3(vec3(glm::sin(time) * 3, 3, glm::cos(time) * 3)));//translate the sphere in an orbit 3 wide and 3 high
 
-	//Control Camera
+	//ImGui::PlotLines("Sphere Rotation y", &sphereMat,);
+	ImGui::End(); // begin second window
+
 	m_camera->Update(deltaTime);
 
-	const mat4 sphereMat = /*glm::rotate(0.0f * time,glm::vec3(0,5,0)) **/ glm::translate(glm::vec3(vec3(glm::sin(time) * 3, 3, glm::cos(time) * 3)));//translate the sphere in an orbit 3 wide and 3 high
 	
 
 
 	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 64, vec4(1, 0, 0, 0.5f), &sphereMat);
 	m_lightPosition = /*glm::vec3(vec3(glm::sin(time) * 10, 10, glm::cos(time) * 10))*/sphereMat[3].xyz;
+	m_cameraPosition = m_camera->GetPos();
 	shader->Bind();
 	// wipe the gizmos clean for this frame
 
@@ -155,9 +168,10 @@ void LandscapeApp::draw() {
 	glm::mat4 projectionView = m_projectionMatrix * m_camera->GetView();
 	glUniformMatrix4fv(
 		glGetUniformLocation(shader->m_program, "projectionView"),
-		1, 
-		false, 
+		1,
+		false,
 		glm::value_ptr(projectionView));
+	
 	//setup texture in open gl - select the first texture as active, then bind it 
 	//also set it up as a uniform variable for shader
 	glActiveTexture(GL_TEXTURE0);
@@ -166,7 +180,10 @@ void LandscapeApp::draw() {
 	// Step 3: Bind the VAO
 	glUniform1f(glGetUniformLocation(shader->m_program, "lightAmbientStrength"), m_lightAmbientStrength);
 	glUniform3fv(glGetUniformLocation(shader->m_program, "lightPosition"),1, &m_lightPosition[0]);
-	glUniform3fv(glGetUniformLocation(shader->m_program, "lightColor"),1, &m_lightColor[0]);
+	glUniform3fv(glGetUniformLocation(shader->m_program, "lightSpecColor"), 1, &m_lightSpecColor[0]);
+	glUniform3fv(glGetUniformLocation(shader->m_program, "lightColor"), 1, &m_lightColor[0]);
+	glUniform1f(glGetUniformLocation(shader->m_program, "specPower"), m_specPower);
+	glUniform3fv(glGetUniformLocation(shader->m_program, "camPos"), 1, &m_cameraPosition[0]);
 
 	// When we setup the geometry, we did a bunch of glEnableVertexAttribArray and glVertexAttribPointer method calls
 	// we also Bound the vertex array and index array via the glBindBuffer call.

@@ -56,8 +56,11 @@ protected:
 	const float m_maxHeight = 2;
 
 	glm::vec3 m_lightPosition;
+	glm::vec3 m_cameraPosition;
 	glm::vec3 m_lightColor;
 	float m_lightAmbientStrength;
+	glm::vec3 m_lightSpecColor = glm::vec3(1.0f,0.0f,0.0f);
+	float m_specPower = 32.0f;
 	struct Vertex
 	{
 		glm::vec4 pos;

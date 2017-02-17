@@ -14,10 +14,11 @@ public:
 	const glm::mat4 &GetView() {
 		return m_viewMatrix;
 	}
+		const glm::vec3& GetPos();
+
 private:
 	void CalculateLook();//gives us the vector of direction by using Yaw, Pitch and Roll
 	void CalculateView();// sets up the view matrix based on our camera information
-
 	glm::mat4 m_viewMatrix;	//pass to OpenGL to know how the camera looks at the world
 
 	glm::vec3 m_cameraLook;//the actual direction the camera is aiming

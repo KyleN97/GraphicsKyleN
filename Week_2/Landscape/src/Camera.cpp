@@ -120,3 +120,8 @@ void Camera::CalculateView()
 {
 	m_viewMatrix = glm::lookAt(m_position, m_position + m_cameraLook, m_cameraUp);
 }
+
+const glm::vec3 & Camera::GetPos()
+{
+	return m_position;
+}
