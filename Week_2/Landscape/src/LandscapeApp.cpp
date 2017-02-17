@@ -57,7 +57,7 @@ bool LandscapeApp::startup() {
 
 	//---setup light---
 	m_lightPosition = glm::vec3(0.0f,5.0f,0.0f);
-	m_lightColor = glm::vec3(0,0,0);
+	m_lightColor = glm::vec3(1,1,1);
 	m_lightAmbientStrength = 0.05f;
 
 	//---load texture---
@@ -77,6 +77,8 @@ bool LandscapeApp::startup() {
 	m_sand->load("Landscape/Textures/sand.png");
 	m_snow = new aie::Texture();
 	m_snow->load("Landscape/Textures/snow.png");
+	m_splat = new aie::Texture();
+	m_splat->load("Landscape/Textures/splat.jpg");
 	//LoadShader();
 
 	//--Load in shader from file and check the errors and put to console---
@@ -101,28 +103,47 @@ void LandscapeApp::shutdown() {
 }
 
 void LandscapeApp::update(float deltaTime) {
+	
 
+	if (m_isWireframe)
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	}
+	else
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	}
 	Gizmos::clear();
 	// query time since application started
 	float time = getTime();
 	static float wrap_width = 200.0f;
-	ImGui::Begin("Lighting Stats"); // begin second window
+	ImGui::Begin("Lighting Editor"); // begin second window
 	ImGui::SliderFloat("Specular Strength", &m_specPower, 0, 1000);
 	ImGui::Text("Light Position");
 	ImGui::Text(glm::to_string(m_lightPosition).c_str());
 	ImGui::Text("Camera Position");
 	ImGui::Text(glm::to_string(m_camera->GetPos()).c_str());
 	ImGui::ColorEdit3("Light Color", glm::value_ptr(m_lightColor));
-	vec3 specToHSV;
-	ImGui::ColorEdit3("Spec Light Color", glm::value_ptr(specToHSV));
-	ImGui::ColorConvertRGBtoHSV(specToHSV.x, specToHSV.y, specToHSV.z, m_lightSpecColor.x, m_lightSpecColor.y, m_lightSpecColor.z);
+	ImGui::ColorEdit3("Spec Light Color", glm::value_ptr(m_lightSpecColor));
 
-	ImGui::Text("Sphere Orbit");
+
 	const mat4 sphereMat = /*glm::rotate(0.0f * time,glm::vec3(0,5,0)) **/ glm::translate(glm::vec3(vec3(glm::sin(time) * 3, 3, glm::cos(time) * 3)));//translate the sphere in an orbit 3 wide and 3 high
 
-	//ImGui::PlotLines("Sphere Rotation y", &sphereMat,);
-	ImGui::End(); // begin second window
+	ImGui::End(); 
 
+	ImGui::Begin("Landscape Editor");
+	ImGui::Checkbox("WireFrame", &m_isWireframe);
+	ImGui::InputInt("Landscape Width", &M_LAND_WIDTH);
+	ImGui::InputInt("Landscape Height", &M_LAND_DEPTH);
+
+	ImGui::End();
+	ImGui::Begin("Debugger");
+	int count = 0;
+	std::string frameRatestr = "Average Framerate " + std::to_string(1.0f / deltaTime);
+	ImGui::Text(frameRatestr.c_str());
+	ImGui::End();
 	m_camera->Update(deltaTime);
 
 	
@@ -195,22 +216,24 @@ void LandscapeApp::draw() {
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, m_grass->getHandle());
 	glUniform1i(glGetUniformLocation(shader->m_program, "grass"), 1);
-	//---
-	//setup snow
+
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, m_snow->getHandle());
-	glUniform1i(glGetUniformLocation(shader->m_program, "snow"), 2);
-	//---
-	//setup rock
-	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, m_rock->getHandle());
-	glUniform1i(glGetUniformLocation(shader->m_program, "rock"), 3);
-	//---
-	//setup sand
-	glActiveTexture(GL_TEXTURE4);
+	glUniform1i(glGetUniformLocation(shader->m_program, "rock"), 2);
+
+
+	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, m_sand->getHandle());
-	glUniform1i(glGetUniformLocation(shader->m_program, "sand"), 4);
-	//---
+	glUniform1i(glGetUniformLocation(shader->m_program, "sand"), 3);
+
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, m_snow->getHandle());
+	glUniform1i(glGetUniformLocation(shader->m_program, "snow"), 4);
+
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, m_splat->getHandle());
+	glUniform1i(glGetUniformLocation(shader->m_program, "splat"), 5);
+
 	// Step 3: Bind the VAO
 	glUniform1f(glGetUniformLocation(shader->m_program, "lightAmbientStrength"), m_lightAmbientStrength);
 	glUniform3fv(glGetUniformLocation(shader->m_program, "lightPosition"),1, &m_lightPosition[0]);
@@ -218,6 +241,7 @@ void LandscapeApp::draw() {
 	glUniform3fv(glGetUniformLocation(shader->m_program, "lightColor"), 1, &m_lightColor[0]);
 	glUniform1f(glGetUniformLocation(shader->m_program, "specPower"), m_specPower);
 	glUniform3fv(glGetUniformLocation(shader->m_program, "camPos"), 1, &m_cameraPosition[0]);
+
 
 	// When we setup the geometry, we did a bunch of glEnableVertexAttribArray and glVertexAttribPointer method calls
 	// we also Bound the vertex array and index array via the glBindBuffer call.

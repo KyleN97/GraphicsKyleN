@@ -101,11 +101,11 @@ void Camera::CalculateLook()
 	//Protect against gimbal lock
 	if (m_pitch >= 90)
 	{
-		m_pitch = 89.9;
+		m_pitch = 89.9f;
 	}
 	if (m_pitch <= -90)
 	{
-		m_pitch = -89.9;
+		m_pitch = -89.9f;
 	}
 	glm::vec3 look;
 	look.x = glm::cos(glm::radians(m_yaw)) * glm::cos(glm::radians(m_pitch));

@@ -8,7 +8,8 @@ uniform sampler2D texture;
 uniform sampler2D grass;	
 uniform sampler2D rock;	
 uniform sampler2D sand;	
-uniform sampler2D snow;	
+uniform sampler2D snow;
+uniform sampler2D splat;	
 uniform float lightAmbientStrength;						
 uniform vec3 lightPosition;								
 uniform vec3 lightColor;	
@@ -27,7 +28,6 @@ void main ()
 	//ambient --END  
 
 	
-	
   vec3 R = reflect(-lightDir,norm);
   vec3 E = normalize(camPos - fPos);
   float specTerm = pow(max(0.0f,dot(R,E)),specPower);
@@ -35,15 +35,22 @@ void main ()
   
   
   vec4 texColor;
-  if(fPos.y > 1.0f)
-	texColor = texture2D(snow,fUv);
-  if(fPos.y > 0.5f && fPos.y < 1.0f)
-	texColor = texture2D(grass,fUv);
-  else
-	texColor = texture2D(rock,fUv);
+  
+  
+   vec4 sp = texture2D(splat,fUv);
+   texColor = sp.x * texture2D(snow,fUv);
+     texColor += sp.y * texture2D(grass,fUv);
+	   texColor += sp.z * texture2D(rock,fUv);
+   // if(fPos.y >= 1.0f)
+ // texColor = texture2D(snow,fUv);
+	
+  // if(fPos.y > 0.5f && fPos.y < 1.0f)
+	 // texColor = texture2D(grass,fUv);
+    // if(fPos.y >= 0.0f && fPos.y < 0.5f)
+	 // texColor = texture2D(rock,fUv);
 
-  // else
-	// texColor = texture2D(texture,fUv);
+   // else
+	 // texColor = texture2D(texture,fUv);
   frag_color = texColor * vec4(ambient + diffColor + Specular,1.0);
   
   

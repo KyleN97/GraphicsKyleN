@@ -42,6 +42,7 @@ protected:
 	aie::Texture* m_sand;
 	aie::Texture* m_snow;
 	aie::Texture* m_rock;
+	aie::Texture* m_splat;
 
 
 	aie::Texture* m_heightMap;
@@ -50,7 +51,7 @@ protected:
 	glm::mat4	m_projectionMatrix;
 
 	//unsigned int m_shader;
-
+	bool m_isWireframe = false;
 	unsigned int m_vertCount;
 	unsigned int m_IndicesCount;
 
@@ -58,7 +59,7 @@ protected:
 	unsigned int m_Vbo;
 	unsigned int m_Ibo;
 
-	const int M_LAND_WIDTH = 128, M_LAND_DEPTH = 128;
+	int M_LAND_WIDTH = 512, M_LAND_DEPTH = 512;
 	const float m_vertSeperation = 0.1f;
 	const float m_maxHeight = 2;
 
