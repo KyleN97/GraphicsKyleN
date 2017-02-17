@@ -37,6 +37,13 @@ protected:
 	Camera* m_camera;
 	Shader* shader;
 	aie::Texture* m_texture;
+
+	aie::Texture* m_grass;
+	aie::Texture* m_sand;
+	aie::Texture* m_snow;
+	aie::Texture* m_rock;
+
+
 	aie::Texture* m_heightMap;
 
 	glm::mat4	m_viewMatrix;

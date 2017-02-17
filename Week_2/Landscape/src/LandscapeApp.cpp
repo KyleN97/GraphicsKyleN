@@ -57,17 +57,26 @@ bool LandscapeApp::startup() {
 
 	//---setup light---
 	m_lightPosition = glm::vec3(0.0f,5.0f,0.0f);
-	m_lightColor = glm::vec3(1,0,0);
+	m_lightColor = glm::vec3(0,0,0);
 	m_lightAmbientStrength = 0.05f;
 
 	//---load texture---
 	m_texture = new aie::Texture();
 	m_texture->load("Landscape/Textures/Tile.png");
 
+
+
 	//---load heightmap---
 	m_heightMap = new aie::Texture();
 	m_heightMap->load("Landscape/Textures/heightmap.bmp");
-
+	m_grass = new aie::Texture();
+	m_grass->load("Landscape/Textures/grass.png");
+	m_rock = new aie::Texture();
+	m_rock->load("Landscape/Textures/rock.png");
+	m_sand = new aie::Texture();
+	m_sand->load("Landscape/Textures/sand.png");
+	m_snow = new aie::Texture();
+	m_snow->load("Landscape/Textures/snow.png");
 	//LoadShader();
 
 	//--Load in shader from file and check the errors and put to console---
@@ -103,8 +112,11 @@ void LandscapeApp::update(float deltaTime) {
 	ImGui::Text(glm::to_string(m_lightPosition).c_str());
 	ImGui::Text("Camera Position");
 	ImGui::Text(glm::to_string(m_camera->GetPos()).c_str());
-	ImGui::DragFloat3("Light Color", glm::value_ptr(m_lightColor));
-	ImGui::DragFloat3("Spec Light Color", glm::value_ptr(m_lightSpecColor));
+	ImGui::ColorEdit3("Light Color", glm::value_ptr(m_lightColor));
+	vec3 specToHSV;
+	ImGui::ColorEdit3("Spec Light Color", glm::value_ptr(specToHSV));
+	ImGui::ColorConvertRGBtoHSV(specToHSV.x, specToHSV.y, specToHSV.z, m_lightSpecColor.x, m_lightSpecColor.y, m_lightSpecColor.z);
+
 	ImGui::Text("Sphere Orbit");
 	const mat4 sphereMat = /*glm::rotate(0.0f * time,glm::vec3(0,5,0)) **/ glm::translate(glm::vec3(vec3(glm::sin(time) * 3, 3, glm::cos(time) * 3)));//translate the sphere in an orbit 3 wide and 3 high
 
@@ -178,6 +190,27 @@ void LandscapeApp::draw() {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_texture->getHandle());
 	glUniform1i(glGetUniformLocation(shader->m_program,"texture"),0);
+
+	//setup grass texture
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, m_grass->getHandle());
+	glUniform1i(glGetUniformLocation(shader->m_program, "grass"), 1);
+	//---
+	//setup snow
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, m_snow->getHandle());
+	glUniform1i(glGetUniformLocation(shader->m_program, "snow"), 2);
+	//---
+	//setup rock
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, m_rock->getHandle());
+	glUniform1i(glGetUniformLocation(shader->m_program, "rock"), 3);
+	//---
+	//setup sand
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, m_sand->getHandle());
+	glUniform1i(glGetUniformLocation(shader->m_program, "sand"), 4);
+	//---
 	// Step 3: Bind the VAO
 	glUniform1f(glGetUniformLocation(shader->m_program, "lightAmbientStrength"), m_lightAmbientStrength);
 	glUniform3fv(glGetUniformLocation(shader->m_program, "lightPosition"),1, &m_lightPosition[0]);
