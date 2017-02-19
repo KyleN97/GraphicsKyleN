@@ -2,6 +2,7 @@
 
 #include "Application.h"
 #include <glm/glm.hpp>
+#include <vector>
 class Camera;
 namespace aie
 {
@@ -27,6 +28,8 @@ public:
 
 	/*void CreateCube();*/
 	/*void DestroyCube();*/
+
+	void CreateObject(glm::vec3 position, float scale);
 
 	void CreateLandscape();
 	void DestroyLandscape();
@@ -68,6 +71,10 @@ protected:
 	glm::vec3 m_lightColor;
 	float m_lightAmbientStrength;
 	glm::vec3 m_lightSpecColor = glm::vec3(1.0f,0.0f,0.0f);
+	std::vector<glm::vec3> objectPosition;
+	std::vector<float> objectScale;
+	std::vector<bool> createObject;
+	int amountOfObjects = 0;
 	float m_specPower = 32.0f;
 	struct Vertex
 	{

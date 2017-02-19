@@ -83,7 +83,9 @@ bool LandscapeApp::startup() {
 
 	//--Load in shader from file and check the errors and put to console---
 	shader = new Shader("Landscape/Shaders/basicShader");
-
+	objectPosition.push_back(glm::vec3(0, 0, 0));
+	objectScale.push_back(0);
+	createObject.push_back(false);
 	//---Create the landscape---
 	CreateLandscape();
 
@@ -103,7 +105,7 @@ void LandscapeApp::shutdown() {
 }
 
 void LandscapeApp::update(float deltaTime) {
-	
+
 
 	if (m_isWireframe)
 	{
@@ -131,23 +133,39 @@ void LandscapeApp::update(float deltaTime) {
 
 	const mat4 sphereMat = /*glm::rotate(0.0f * time,glm::vec3(0,5,0)) **/ glm::translate(glm::vec3(vec3(glm::sin(time) * 3, 3, glm::cos(time) * 3)));//translate the sphere in an orbit 3 wide and 3 high
 
-	ImGui::End(); 
+	ImGui::End();
 
 	ImGui::Begin("Landscape Editor");
 	ImGui::Checkbox("WireFrame", &m_isWireframe);
-	ImGui::InputInt("Landscape Width", &M_LAND_WIDTH);
-	ImGui::InputInt("Landscape Height", &M_LAND_DEPTH);
-
 	ImGui::End();
+	ImGui::Begin("Object Creator");
+	ImGui::InputFloat3("Cube Position", glm::value_ptr(objectPosition[amountOfObjects]));
+	ImGui::InputFloat("Cube Scale", &objectScale[amountOfObjects]);
+	if (ImGui::Button("Create Sphere"))
+	{	
+		amountOfObjects++;
+		createObject.push_back(true);
+		objectPosition.push_back(objectPosition[amountOfObjects - 1]);
+		objectScale.push_back(objectScale[amountOfObjects - 1]);
+	}
+	ImGui::End();
+
 	ImGui::Begin("Debugger");
 	int count = 0;
 	std::string frameRatestr = "Average Framerate " + std::to_string(1.0f / deltaTime);
 	ImGui::Text(frameRatestr.c_str());
 	ImGui::End();
 	m_camera->Update(deltaTime);
+	int counter = 0;
+	for each (bool var in createObject)
+	{
+		counter++;
+		if (var == true)
+		{
+			CreateObject(objectPosition[counter - 1], objectScale[counter - 1]);
 
-	
-
+		}
+	}
 
 	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 64, vec4(1, 0, 0, 0.5f), &sphereMat);
 	m_lightPosition = /*glm::vec3(vec3(glm::sin(time) * 10, 10, glm::cos(time) * 10))*/sphereMat[3].xyz;
@@ -297,6 +315,12 @@ void LandscapeApp::Vertex::SetupVertexAttribPointers()
 		sizeof(Vertex),
 		(void*)(sizeof(float) * 6)
 	);
+}
+
+void LandscapeApp::CreateObject(glm::vec3 position, float scale)
+{
+	Gizmos::addSphere(position, scale, 32, 32, vec4(1, 0, 0, 0.5f), NULL);
+
 }
 
 void LandscapeApp::CreateLandscape()
