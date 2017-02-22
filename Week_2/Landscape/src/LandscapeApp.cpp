@@ -167,7 +167,7 @@ void LandscapeApp::update(float deltaTime) {
 		}
 	}
 
-	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 64, vec4(1, 0, 0, 0.5f), &sphereMat);
+	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 12, vec4(1, 0, 0, 0.5f), &sphereMat);
 	m_lightPosition = /*glm::vec3(vec3(glm::sin(time) * 10, 10, glm::cos(time) * 10))*/sphereMat[3].xyz;
 	m_cameraPosition = m_camera->GetPos();
 	shader->Bind();
