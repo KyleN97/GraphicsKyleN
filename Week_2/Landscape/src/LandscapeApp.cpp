@@ -122,7 +122,7 @@ void LandscapeApp::update(float deltaTime) {
 	float time = getTime();
 	static float wrap_width = 200.0f;
 	ImGui::Begin("Lighting Editor"); // begin second window
-	ImGui::SliderFloat("Specular Strength", &m_specPower, 0, 1000);
+	ImGui::SliderFloat("Specular Strength", &m_specPower, 0, 10000);
 	ImGui::Text("Light Position");
 	ImGui::Text(glm::to_string(m_lightPosition).c_str());
 	ImGui::Text("Camera Position");
