@@ -83,6 +83,10 @@ bool LandscapeApp::startup() {
 
 	//--Load in shader from file and check the errors and put to console---
 	shader = new Shader("Landscape/Shaders/basicShader");
+	objectPosition.reserve(64);
+	objectScale.reserve(64);
+	createObject.reserve(64);
+
 	objectPosition.push_back(glm::vec3(0, 0, 0));
 	objectScale.push_back(0);
 	createObject.push_back(false);
@@ -139,14 +143,17 @@ void LandscapeApp::update(float deltaTime) {
 	ImGui::Checkbox("WireFrame", &m_isWireframe);
 	ImGui::End();
 	ImGui::Begin("Object Creator");
-	ImGui::InputFloat3("Cube Position", glm::value_ptr(objectPosition[amountOfObjects]));
-	ImGui::InputFloat("Cube Scale", &objectScale[amountOfObjects]);
+	ImGui::InputFloat3("Cube Position", glm::value_ptr(objectPosition[amountOfObjects - 1]));
+	ImGui::InputFloat("Cube Scale", &objectScale[amountOfObjects - 1]);
 	if (ImGui::Button("Create Sphere"))
 	{	
-		amountOfObjects++;
-		createObject.push_back(true);
-		objectPosition.push_back(objectPosition[amountOfObjects - 1]);
-		objectScale.push_back(objectScale[amountOfObjects - 1]);
+
+			createObject.push_back(false);
+			objectPosition.push_back(vec3(0,0,0));
+			objectScale.push_back(0.0f);
+			createObject[amountOfObjects - 1] = true;
+			amountOfObjects++;
+
 	}
 	ImGui::End();
 

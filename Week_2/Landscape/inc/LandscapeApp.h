@@ -74,7 +74,7 @@ protected:
 	std::vector<glm::vec3> objectPosition;
 	std::vector<float> objectScale;
 	std::vector<bool> createObject;
-	int amountOfObjects = 0;
+	int amountOfObjects = 1;
 	float m_specPower = 32.0f;
 	struct Vertex
 	{
