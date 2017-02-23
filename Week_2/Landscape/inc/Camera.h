@@ -30,6 +30,7 @@ private:
 	float m_roll = 0.0f;//yaw = l/r rotation, pitch = up/down rotation, roll = twisting l/r e.g rolling l/r
 	const float m_mouseSensitivity = 10.0f;//sensitivity of the mouse
 	const float m_moveSpeed = 5.0f;
+	float m_speedMult = 1;
 	int m_lastMouseXPos = 0;
 	int m_lastMouseYPos = 0; //record prev position to see how far it has moved
 

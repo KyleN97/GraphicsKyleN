@@ -49,32 +49,42 @@ void Camera::Update(float deltaTime)
 	glm::vec3 strafe = glm::normalize(glm::cross(m_cameraLook, m_cameraUp));
 	if (input->isKeyDown(aie::INPUT_KEY_W))
 	{
-		m_position += m_moveSpeed * m_cameraLook * deltaTime;
+		m_position += (m_moveSpeed  * m_speedMult ) * m_cameraLook * deltaTime;
 		CalculateLook();
 	}
 	if (input->isKeyDown(aie::INPUT_KEY_S))
 	{
-		m_position -= m_moveSpeed * m_cameraLook * deltaTime;
+		m_position -= (m_moveSpeed  * m_speedMult ) * m_cameraLook * deltaTime;
 		CalculateLook();
 	}
+
 	if (input->isKeyDown(aie::INPUT_KEY_A))
 	{
-		m_position -= m_moveSpeed * strafe  * deltaTime;
+		m_position -= (m_moveSpeed  * m_speedMult) * strafe  * deltaTime;
 		CalculateLook();
 	}
 	if (input->isKeyDown(aie::INPUT_KEY_D))
 	{
-		m_position += m_moveSpeed * strafe  * deltaTime;
+		m_position += (m_moveSpeed  * m_speedMult) * strafe  * deltaTime;
 		CalculateLook();
 	}
 	if (input->isKeyDown(aie::INPUT_KEY_Q))
 	{
-		m_position.y += m_moveSpeed *deltaTime;
+		m_position.y += (m_moveSpeed  * m_speedMult) * deltaTime;
 		CalculateLook();
 	}
 	if (input->isKeyDown(aie::INPUT_KEY_E))
 	{
-		m_position.y -= m_moveSpeed *deltaTime;
+		m_position.y -= (m_moveSpeed  * m_speedMult) * deltaTime;
+		CalculateLook();
+	}
+	if (input->isKeyDown(aie::INPUT_KEY_LEFT_SHIFT))
+	{
+		m_speedMult = 5;
+	}
+	if (input->isKeyUp(aie::INPUT_KEY_LEFT_SHIFT))
+	{
+		m_speedMult = 1;
 		CalculateLook();
 	}
 }
