@@ -3,12 +3,20 @@
 #include "Application.h"
 #include <glm/glm.hpp>
 #include <vector>
-class Camera;
+#include "FBXFile.h"
+class GLMesh
+{
+public:
+	unsigned int vao;
+	unsigned int vbo;
+	unsigned int ibo;
+};
 namespace aie
 {
 	class Texture;
 }
 class Shader;
+class Camera;
 class LandscapeApp : public aie::Application {
 public:
 
@@ -36,6 +44,13 @@ public:
 
 	void DrawLandscape();
 
+	void CreateFBXOpenGLBuffers(FBXFile *file);
+	void CleanupFBXOpenGLBuffers(FBXFile *file);
+	void LoadShaders();
+	void UnloadShaders();
+
+
+
 protected:
 	Camera* m_camera;
 	Shader* shader;
@@ -61,6 +76,9 @@ protected:
 	unsigned int m_Vao;
 	unsigned int m_Vbo;
 	unsigned int m_Ibo;
+
+	unsigned int m_fbxShader;
+	FBXFile *m_myFbxModel;
 
 	int M_LAND_WIDTH = 512, M_LAND_DEPTH = 512;
 	const float m_vertSeperation = 0.1f;
