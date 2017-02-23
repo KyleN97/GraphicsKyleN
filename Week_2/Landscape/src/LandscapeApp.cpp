@@ -45,7 +45,6 @@ bool LandscapeApp::startup() {
 	
 
 	setBackgroundColour(0.25f, 0.25f, 0.25f);
-	const glm::mat4* transform;
 	//---initialize gizmo primitive counts---
 	Gizmos::create(10000, 10000, 10000, 10000);
 
@@ -66,43 +65,42 @@ bool LandscapeApp::startup() {
 	m_myFbxModel = new FBXFile();
 	m_myFbxModel->load("./models/soulspear/soulspear.fbx", FBXFile::UNITS_CENTIMETER);
 	CreateFBXOpenGLBuffers(m_myFbxModel);
-	LoadShaders();
-
+	fbxShader = new Shader("Landscape/Shaders/fbxShader");
 	//---load heightmap---
 	m_heightMap = new aie::Texture();
 	m_heightMap->load("Landscape/Textures/heightmap.bmp");
+	//---load grass---
 	m_grass = new aie::Texture();
 	m_grass->load("Landscape/Textures/grass.png");
+	//---load rock---
 	m_rock = new aie::Texture();
 	m_rock->load("Landscape/Textures/rock.png");
+	//---load sand---
 	m_sand = new aie::Texture();
 	m_sand->load("Landscape/Textures/sand.png");
+	//---load snow---
 	m_snow = new aie::Texture();
 	m_snow->load("Landscape/Textures/snow.png");
+	//---load splat--
 	m_splat = new aie::Texture();
 	m_splat->load("Landscape/Textures/splat.jpg");
-	//LoadShader();
 
 	//--Load in shader from file and check the errors and put to console---
 	shader = new Shader("Landscape/Shaders/basicShader");
-	fbxShader = new Shader("Landscape/Shaders/fbxShader");
+
 	objectPosition.reserve(64);
 	objectScale.reserve(64);
 	createObject.reserve(64);
 	objectColor.reserve(64);
-	objectTexture.reserve(64);
-	objectTexture.push_back(new aie::Texture());
 	objectPosition.push_back(glm::vec3(1, 1, 1));
 	objectScale.push_back(1);
 	objectColor.push_back(glm::vec4(1, 1, 1, 1));
-	m_objectShaders.push_back(0);
 	createObject.push_back(false);
 	//---Create the landscape---
 	CreateLandscape();
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	return true;
 }
 
@@ -110,9 +108,7 @@ void LandscapeApp::shutdown() {
 	DestroyLandscape();
 	delete shader;
 	delete m_camera;
-	//Gizmos::destroy();
-	//UnloadShader();
-	UnloadShaders();
+	Gizmos::destroy();
 	CleanupFBXOpenGLBuffers(m_myFbxModel);
 	m_myFbxModel->unload();
 	delete m_myFbxModel;
@@ -135,21 +131,13 @@ void LandscapeApp::update(float deltaTime) {
 	// query time since application started
 	float time = getTime();
 	static float wrap_width = 200.0f;
-	ImGui::Begin("Lighting Editor"); // begin second window
+	#pragma region Lighting GUI
+
+	ImGui::Begin("Lighting Editor");
 	ImGui::SliderFloat("Specular Strength", &m_specPower, 0, 10000);
-	ImGui::Text("Light Position");
-	ImGui::Text(glm::to_string(m_lightPosition).c_str());
-	ImGui::Text("Camera Position");
-	ImGui::Text(glm::to_string(m_camera->GetPos()).c_str());
 	ImGui::ColorEdit3("Light Color", glm::value_ptr(m_lightColor));
 	ImGui::ColorEdit3("Spec Light Color", glm::value_ptr(m_lightSpecColor));
-
-
-	const mat4 sphereMat = /*glm::rotate(0.0f * time,glm::vec3(0,5,0)) **/ glm::translate(glm::vec3(vec3(glm::sin(time) * 3, 3, glm::cos(time) * 3)));//translate the sphere in an orbit 3 wide and 3 high
-
 	ImGui::End();
-
-
 
 	ImGui::Begin("Light");
 	//ImGui::InputFloat3("Light Position", &);
@@ -163,68 +151,70 @@ void LandscapeApp::update(float deltaTime) {
 
 	}
 	ImGui::End();
-
-
+#pragma endregion
+	
+	#pragma region Landscape GUI
 	ImGui::Begin("Landscape Editor");
 	ImGui::Checkbox("WireFrame", &m_isWireframe);
 	ImGui::End();
 	ImGui::Begin("Object Creator");
+#pragma endregion
+	
+	#pragma region ObjectGUI
 	ImGui::InputFloat3("Object Position", glm::value_ptr(objectPosition[amountOfObjects - 1]));
 	ImGui::InputFloat("Object Scale", &objectScale[amountOfObjects - 1]);
 	ImGui::ColorEdit4("Object Color", glm::value_ptr(objectColor[amountOfObjects - 1]));
 	const char* listbox_items_textures[] = { "Tile","Grass","Rock" };
 	static int listbox_item_textures_current = 0;
 	ImGui::ListBox("Object Texture", &listbox_item_textures_current, listbox_items_textures, sizeof(listbox_items_textures) / sizeof(listbox_items_textures[0]), 4);
-	const char* listbox_items[] = {"Sphere","AABBFilled","Disk"};
+	const char* listbox_items[] = { "Sphere","AABBFilled","Disk" };
 	static int listbox_item_current = 0;
-	ImGui::ListBox("Object Type", &listbox_item_current, listbox_items, sizeof(listbox_items)/sizeof(listbox_items[0]), 4);
+	ImGui::ListBox("Object Type", &listbox_item_current, listbox_items, sizeof(listbox_items) / sizeof(listbox_items[0]), 4);
 	if (ImGui::Button("Create Object"))
-	{	
+	{
 		std::string fileFormat = ".png";
 		std::string pathToTexture = "Landscape/Textures/";
 		std::string textureToLoad = (char*)listbox_items_textures[listbox_item_textures_current];
 		pathToTexture += textureToLoad + fileFormat;
-			createObject.push_back(false);
-			objectPosition.push_back(vec3(1,1,1));
-			objectScale.push_back(1.0f);
-			objectColor.push_back(glm::vec4(1, 1, 1, 1));
-			objectTexture.push_back(new aie::Texture());
-			objectTexture[amountOfObjects - 1]->load(pathToTexture.c_str());
-
-			objectType.push_back(listbox_items[listbox_item_current]);
-			createObject[amountOfObjects - 1] = true;
-			amountOfObjects++;
-			LoadObjectShaders();
-			//Gizmos::add
+		createObject.push_back(false);
+		objectPosition.push_back(vec3(1, 1, 1));
+		objectScale.push_back(1.0f);
+		objectColor.push_back(glm::vec4(1, 1, 1, 1));
+		objectType.push_back(listbox_items[listbox_item_current]);
+		createObject[amountOfObjects - 1] = true;
+		amountOfObjects++;
 	}
 	ImGui::End();
+#pragma endregion
 
-	ImGui::Begin("Debugger");
-	int count = 0;
-	std::string frameRatestr = "Average Framerate " + std::to_string(1.0f / deltaTime);
-	ImGui::Text(frameRatestr.c_str());
-	ImGui::End();
+	#pragma region DebuggerGUI
+		ImGui::Begin("Debugger");
+		std::string frameRatestr = "Average Framerate " + std::to_string(1.0f / deltaTime);
+		ImGui::Text(frameRatestr.c_str());
+		ImGui::Text("Camera Position");
+		ImGui::Text(glm::to_string(m_camera->GetPos()).c_str());
+		ImGui::Text("Light Position");
+		ImGui::Text(glm::to_string(m_lightPosition).c_str());
+		ImGui::End();
+	#pragma endregion
+
 	m_camera->Update(deltaTime);
-	if (createObject[0] == true)
-	{
+
+	if (createObject[0] == true){
 		DrawAABBFilled();
 		DrawRing();
 		DrawSphere();
 	}
 
+	const mat4 sphereMat = /*glm::rotate(0.0f * time,glm::vec3(0,5,0)) **/ glm::translate(glm::vec3(vec3(glm::sin(time) * 3, 3, glm::cos(time) * 3)));//translate the sphere in an orbit 3 wide and 3 high
 	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 12, vec4(1, 0, 0, 0.5f), &sphereMat);
-	m_lightPosition = /*glm::vec3(vec3(glm::sin(time) * 10, 10, glm::cos(time) * 10))*/sphereMat[3].xyz;
+
+	m_lightPosition = sphereMat[3].xyz;
 	m_cameraPosition = m_camera->GetPos();
+
 	shader->Bind();
-	// wipe the gizmos clean for this frame
-
-	//Gizmos::addTransform(mat4(1));
-
-
 
 	//DrawGrid();
-	
-	shader->Bind();
 	// quit if we press escape
 	aie::Input* input = aie::Input::getInstance();
 
@@ -308,7 +298,6 @@ void LandscapeApp::draw() {
 	glUniform1f(glGetUniformLocation(shader->m_program, "specPower"), m_specPower);
 	glUniform3fv(glGetUniformLocation(shader->m_program, "camPos"), 1, &m_cameraPosition[0]);
 
-
 	// When we setup the geometry, we did a bunch of glEnableVertexAttribArray and glVertexAttribPointer method calls
 	// we also Bound the vertex array and index array via the glBindBuffer call.
 	// if we where not using VAO's we would have to do thoes method calls each frame here.
@@ -329,9 +318,14 @@ void LandscapeApp::draw() {
 
 	//FBX - START
 	glUseProgram(fbxShader->m_program);
+	float scale = 1.0f;
+	mat4 model = { scale,0.0f, 0.0f, 0.0f,
+		0.0f,scale, 0.0f, 0.0f,
+		0.0f, 0.0f,scale, 0.0f,
+		0.0f, 0.0f, 0.0f,1.0f };
 	// send uniform variables, in this case the "projectionViewWorldMatrix"
 	unsigned int mvpLoc = glGetUniformLocation(fbxShader->m_program, "projectionViewWorldMatrix");
-	glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(projectionView));
+	glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(projectionView * model));
 	// loop through each mesh within the fbx file
 	for (unsigned int i = 0; i < m_myFbxModel->getMeshCount(); ++i)
 	{
@@ -349,6 +343,10 @@ void LandscapeApp::draw() {
 		glUniform3fv(glGetUniformLocation(fbxShader->m_program, "lightColor"), 1, &m_lightColor[0]);
 		glUniform1f(glGetUniformLocation(fbxShader->m_program, "specPower"), m_specPower);
 		glUniform3fv(glGetUniformLocation(fbxShader->m_program, "camPos"), 1, &m_cameraPosition[0]);
+		//glUniform3fv(glGetUniformLocation(fbxShader->m_program, "modelSpecular"), 1, &mesh->m_material->specular[0]);
+		//glUniform3fv(glGetUniformLocation(fbxShader->m_program, "modelAmbient"), 1, &mesh->m_material->ambient[0]);
+		//glUniform3fv(glGetUniformLocation(fbxShader->m_program, "modelDiffuse"), 1, &mesh->m_material->diffuse[0]);
+
 		// draw the mesh
 		glBindVertexArray(glData->vao);
 		glDrawElements(GL_TRIANGLES, mesh->m_indices.size(), GL_UNSIGNED_INT, 0);
@@ -356,26 +354,6 @@ void LandscapeApp::draw() {
 	}
 	glUseProgram(0);
 
-	if (createObject[0] == true)
-	{
-		glUseProgram(m_objectShaders[amountOfObjects - 1]);
-	
-		for (int i = 0; i < amountOfObjects - 1; i++)
-		{
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, objectTexture[i]->getHandle());
-			unsigned int mvpLoc = glGetUniformLocation(m_objectShaders[i + 1], "projectionViewWorldMatrix");
-			glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(projectionView));
-			glUniform1i(glGetUniformLocation(m_objectShaders [i + 1], "diffuseTexture"), 0);
-			glUniform1f(glGetUniformLocation(m_objectShaders [i + 1], "lightAmbientStrength"), m_lightAmbientStrength);
-			glUniform3fv(glGetUniformLocation(m_objectShaders[i + 1], "lightPosition"), 1, &m_lightPosition[0]);
-			glUniform3fv(glGetUniformLocation(m_objectShaders[i + 1], "lightSpecColor"), 1, &m_lightSpecColor[0]);
-			glUniform3fv(glGetUniformLocation(m_objectShaders[i + 1], "lightColor"), 1, &m_lightColor[0]);
-			glUniform1f(glGetUniformLocation(m_objectShaders [i + 1], "specPower"), m_specPower);
-			glUniform3fv(glGetUniformLocation(m_objectShaders[i + 1], "camPos"), 1, &m_cameraPosition[0]);
-		}
-		glUseProgram(0);
-	}
 
 	//FBX - END
 	Gizmos::draw(m_projectionMatrix * m_camera->GetView());
@@ -455,70 +433,6 @@ void LandscapeApp::DrawRing()
 
 		}
 	}
-}
-
-void LandscapeApp::DrawTextureObject()
-{
-	
-}
-
-void LandscapeApp::LoadObjectShaders()
-{
-	const char* vsSource =
-		"#version 410\n \
-		in vec4 position; \n\
-		in vec4 normal; \n\
-		in vec2 uv; \n\
-		out vec4 vNormal; \n\
-		out vec2 vuv; \n\
-		out vec3 fPos; \n\
-		uniform mat4 projectionViewWorldMatrix; \n\
-		void main() { \n\
-			vNormal = normal; \n\
-			vuv = uv; \n\
-			fPos = position.xyz;\n\
-			gl_Position = projectionViewWorldMatrix * position; \n\
-		}";
-	const char* fsSource =
-		"#version 410\n \
-		in vec4 vNormal; \n\
-		in vec2 vuv; \n\
-		in vec3 fPos; \n\
-		out vec4 FragColor; \n\
-		uniform sampler2D diffuseTexture; \n\
-		uniform float lightAmbientStrength;\n\
-		uniform vec3 lightPosition; \n\
-		uniform vec3 lightColor; \n\
-		uniform vec3 lightSpecColor; \n\
-		uniform float specPower = 32.0f; \n\
-		uniform vec3 camPos; \n\
-		void main() { \n\
-			vec3 norm = normalize(vNormal.xyz);\n \
-			vec3 lightDir = normalize(lightPosition - fPos); \n \
-			float diff = max(dot(norm, lightDir), 0.0f); \n\
-			vec3 diffColor = diff * lightColor; \n\
-			vec3 ambient = lightColor * lightAmbientStrength; \n\
-			vec3 R = reflect(-lightDir, norm); \n\
-			vec3 E = normalize(camPos - fPos); \n\
-			float specTerm = pow(max(0.0f, dot(R, E)), specPower); \n\
-			vec3 Specular = lightSpecColor * specTerm; \n \
-			FragColor = texture2D(diffuseTexture, vuv) * vec4(ambient + diffColor + Specular,1); \n\
-		}";
-	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, (const char**)&vsSource, 0);
-	glCompileShader(vertexShader);
-	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, (const char**)&fsSource, 0);
-	glCompileShader(fragmentShader);
-	m_objectShaders.push_back(glCreateProgram());
-	glAttachShader(m_objectShaders[amountOfObjects - 1], vertexShader);
-	glAttachShader(m_objectShaders[amountOfObjects - 1], fragmentShader);
-	glBindAttribLocation(m_objectShaders[amountOfObjects - 1], 0, "position");
-	glBindAttribLocation(m_objectShaders[amountOfObjects - 1], 1, "normal");
-	glBindAttribLocation(m_objectShaders[amountOfObjects - 1], 2, "uv");
-	glLinkProgram(m_objectShaders[amountOfObjects - 1]);
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
 }
 
 void LandscapeApp::CreateLandscape()
@@ -691,70 +605,6 @@ void LandscapeApp::CleanupFBXOpenGLBuffers(FBXFile * file)
 		glDeleteBuffers(1, &glData->ibo);
 		delete glData;
 	}
-}
-
-void LandscapeApp::LoadShaders()
-{
-	/*const char* vsSource =
-		"#version 410\n \
-		in vec4 position; \n\
-		in vec4 normal; \n\
-		in vec2 uv; \n\
-		out vec4 vNormal; \n\
-		out vec2 vuv; \n\
-		out vec3 fPos; \n\
-		uniform mat4 projectionViewWorldMatrix; \n\
-		void main() { \n\
-			vNormal = normal; \n\
-			vuv = uv; \n\
-			fPos = position.xyz;\n\
-			gl_Position = projectionViewWorldMatrix * position; \n\
-		}";
-	const char* fsSource =
-		"#version 410\n \
-		in vec4 vNormal; \n\
-		in vec2 vuv; \n\
-		in vec3 fPos; \n\
-		out vec4 FragColor; \n\
-		uniform sampler2D diffuseTexture; \n\
-		uniform float lightAmbientStrength;\n\
-		uniform vec3 lightPosition; \n\
-		uniform vec3 lightColor; \n\
-		uniform vec3 lightSpecColor; \n\
-		uniform float specPower = 32.0f; \n\
-		uniform vec3 camPos; \n\
-		void main() { \n\
-			vec3 norm = normalize(vNormal.xyz);\n \
-			vec3 lightDir = normalize(lightPosition - fPos); \n \
-			float diff = max(dot(norm, lightDir), 0.0f); \n\
-			vec3 diffColor = diff * lightColor; \n\
-			vec3 ambient = lightColor * lightAmbientStrength; \n\
-			vec3 R = reflect(-lightDir, norm); \n\
-			vec3 E = normalize(camPos - fPos); \n\
-			float specTerm = pow(max(0.0f, dot(R, E)), specPower); \n\
-			vec3 Specular = lightSpecColor * specTerm; \n \
-			FragColor = texture2D(diffuseTexture, vuv) * vec4(ambient + diffColor + Specular,1); \n\
-		}";
-	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, (const char**)&vsSource, 0);
-	glCompileShader(vertexShader);
-	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, (const char**)&fsSource, 0);
-	glCompileShader(fragmentShader);
-	m_fbxShader = glCreateProgram();
-	glAttachShader(m_fbxShader, vertexShader);
-	glAttachShader(m_fbxShader, fragmentShader);
-	glBindAttribLocation(m_fbxShader, 0, "position");
-	glBindAttribLocation(m_fbxShader, 1, "normal");
-	glBindAttribLocation(m_fbxShader, 2, "uv");
-	glLinkProgram(m_fbxShader);
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);*/
-}
-
-void LandscapeApp::UnloadShaders()
-{
-	//glDeleteProgram(m_fbxShader);
 }
 
 void LandscapeApp::AddLight()

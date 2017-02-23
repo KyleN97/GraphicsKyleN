@@ -9,6 +9,9 @@ uniform vec3 lightPosition;
 uniform vec3 lightColor; 
 uniform vec3 lightSpecColor; 
 uniform float specPower = 32.0f; 
+//uniform vec4 modelSpecular;
+//uniform vec4 modelAmbient;
+//uniform vec4 modelDiffuse;
 uniform vec3 camPos; 
 void main() { 
 	vec3 norm = normalize(vNormal.xyz);
@@ -20,5 +23,5 @@ void main() {
 	vec3 E = normalize(camPos - fPos); 
 	float specTerm = pow(max(0.0f, dot(R, E)), specPower); 
 	vec3 Specular = lightSpecColor * specTerm; 
-	FragColor = texture2D(diffuseTexture, vuv) * vec4(ambient + diffColor + Specular,1); 
+	FragColor = texture2D(diffuseTexture, vuv) * vec4(Specular + ambient + diffColor,1); 
 };

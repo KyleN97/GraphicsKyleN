@@ -1,7 +1,7 @@
 #version 410
-in vec4 position; 
-in vec4 normal; 
-in vec2 uv;
+layout (location = 0) in vec4 position; 
+layout (location = 1) in vec4 normal; 
+layout (location = 2) in vec2 uv;
 out vec4 vNormal;
 out vec2 vuv; 
 out vec3 fPos; 
