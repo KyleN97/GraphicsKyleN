@@ -16,7 +16,9 @@ namespace aie
 	class Texture;
 }
 class Shader;
+class Light;
 class Camera;
+class ParticleEmitter;
 class LandscapeApp : public aie::Application {
 public:
 
@@ -49,26 +51,40 @@ public:
 	void CreateFBXOpenGLBuffers(FBXFile *file);
 	void CleanupFBXOpenGLBuffers(FBXFile *file);
 
+	void SetupFrameBuffer();
+	void SetupFrameQuad();
 	void AddLight();
+
+	void InitDrawPostProcess(bool isOn);
+	void DrawPostProcess(bool isOn);
 
 protected:
 	Camera* m_camera;
 	Shader* shader;
 	Shader* fbxShader;
-	aie::Texture* m_texture;
+	Shader* particleShader;
+	Shader* frameBufferShader;
+	ParticleEmitter* m_emitter;
 
+	std::vector<Light*> lightSources;
+
+	FBXFile *m_myFbxModel;
+
+	aie::Texture* m_texture;
 	aie::Texture* m_grass;
 	aie::Texture* m_sand;
 	aie::Texture* m_snow;
 	aie::Texture* m_rock;
 	aie::Texture* m_splat;
-
-
 	aie::Texture* m_heightMap;
 
 	glm::mat4	m_viewMatrix;
 	glm::mat4	m_projectionMatrix;
 
+	bool m_enablePostProcess = false;
+	bool m_enableDistortion = true;
+	bool m_enableBlur = false;
+	bool m_enableGrey = false;
 	bool m_isWireframe = false;
 	unsigned int m_vertCount;
 	unsigned int m_IndicesCount;
@@ -76,18 +92,23 @@ protected:
 	unsigned int m_Vao;
 	unsigned int m_Vbo;
 	unsigned int m_Ibo;
-
-	FBXFile *m_myFbxModel;
-
+	//Post
+	unsigned int m_vao;
+	unsigned int m_vbo;
+	unsigned int m_fbo;
+	unsigned int m_fboTexture;
+	unsigned int m_fboDepth;
+	//---
 	int M_LAND_WIDTH = 512, M_LAND_DEPTH = 512;
 	const float m_vertSeperation = 0.1f;
 	const float m_maxHeight = 2;
 	//World Lighting
-	glm::vec3 m_lightPosition;
+	//glm::vec3 m_lightPosition;
 	glm::vec3 m_cameraPosition;
-	glm::vec3 m_lightColor;
+	//glm::vec3 m_lightColor;
 	float m_lightAmbientStrength;
-	glm::vec3 m_lightSpecColor = glm::vec3(1.0f,0.0f,0.0f);
+	int num_Lights = 0;
+	//glm::vec3 m_lightSpecColor = glm::vec3(1.0f,0.0f,0.0f);
 	//End World Lighting
 	//Object Creation
 	std::vector<glm::vec3> objectPosition;

@@ -27,7 +27,8 @@ STEP 4: Unload Shader and Geometry
 #include <glm/ext.hpp>
 #include "gl_core_4_4.h"
 #include "Shader.h"
-
+#include "Light.h"
+#include "ParticleEmitter.h"
 using glm::vec3;
 using glm::vec4;
 using glm::mat4;
@@ -54,8 +55,9 @@ bool LandscapeApp::startup() {
 	m_camera->LookAt(glm::vec3(0.0f,0.0f,0.0f));
 
 	//---setup light---
-	m_lightPosition = glm::vec3(0.0f,5.0f,0.0f);
-	m_lightColor = glm::vec3(1,1,1);
+	//m_lightPosition = glm::vec3(0.0f,5.0f,0.0f);
+	//m_lightColor = glm::vec3(1,1,1);
+	lightSources.push_back(new Light(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(1, 1, 1)));
 	m_lightAmbientStrength = 0.05f;
 
 	//---load texture---
@@ -87,6 +89,12 @@ bool LandscapeApp::startup() {
 
 	//--Load in shader from file and check the errors and put to console---
 	shader = new Shader("Landscape/Shaders/basicShader");
+	particleShader = new Shader("Landscape/Shaders/particleShader");
+	frameBufferShader = new Shader("Landscape/Shaders/frameBufferShader");
+	SetupFrameBuffer();
+	SetupFrameQuad();
+	m_emitter = new ParticleEmitter();
+	m_emitter->Init(1000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 0, 0, 1), glm::vec4(1, 1, 0, 1),glm::vec3(2,2,2));
 
 	objectPosition.reserve(64);
 	objectScale.reserve(64);
@@ -134,9 +142,10 @@ void LandscapeApp::update(float deltaTime) {
 	#pragma region Lighting GUI
 
 	ImGui::Begin("Lighting Editor");
+
 	ImGui::SliderFloat("Specular Strength", &m_specPower, 0, 10000);
-	ImGui::ColorEdit3("Light Color", glm::value_ptr(m_lightColor));
-	ImGui::ColorEdit3("Spec Light Color", glm::value_ptr(m_lightSpecColor));
+	//ImGui::ColorEdit3("Light Color", glm::value_ptr(lightSources[num_Lights]->colour));
+	//ImGui::ColorEdit3("Spec Light Color", glm::value_ptr(m_lightSpecColor));
 	ImGui::End();
 
 	ImGui::Begin("Light");
@@ -144,11 +153,13 @@ void LandscapeApp::update(float deltaTime) {
 	//ImGui::ColorEdit3("Light Color", &);
 	if (ImGui::Button("Create Point Light"))
 	{
-
+		lightSources.push_back(new Light(glm::vec3(0, 10, 0), glm::vec3(0, 1.0f, 0.0f),glm::vec3(1,0.01f,0.002f)));
+		num_Lights++;
 	}
 	if (ImGui::Button("Create Spot Light"))
 	{
-
+		lightSources.push_back(new Light(glm::vec3(10, 10, 10), glm::vec3(1, 0.2f, 0.5f)));
+		num_Lights++;
 	}
 	ImGui::End();
 #pragma endregion
@@ -164,18 +175,11 @@ void LandscapeApp::update(float deltaTime) {
 	ImGui::InputFloat3("Object Position", glm::value_ptr(objectPosition[amountOfObjects - 1]));
 	ImGui::InputFloat("Object Scale", &objectScale[amountOfObjects - 1]);
 	ImGui::ColorEdit4("Object Color", glm::value_ptr(objectColor[amountOfObjects - 1]));
-	const char* listbox_items_textures[] = { "Tile","Grass","Rock" };
-	static int listbox_item_textures_current = 0;
-	ImGui::ListBox("Object Texture", &listbox_item_textures_current, listbox_items_textures, sizeof(listbox_items_textures) / sizeof(listbox_items_textures[0]), 4);
 	const char* listbox_items[] = { "Sphere","AABBFilled","Disk" };
 	static int listbox_item_current = 0;
 	ImGui::ListBox("Object Type", &listbox_item_current, listbox_items, sizeof(listbox_items) / sizeof(listbox_items[0]), 4);
 	if (ImGui::Button("Create Object"))
 	{
-		std::string fileFormat = ".png";
-		std::string pathToTexture = "Landscape/Textures/";
-		std::string textureToLoad = (char*)listbox_items_textures[listbox_item_textures_current];
-		pathToTexture += textureToLoad + fileFormat;
 		createObject.push_back(false);
 		objectPosition.push_back(vec3(1, 1, 1));
 		objectScale.push_back(1.0f);
@@ -194,11 +198,35 @@ void LandscapeApp::update(float deltaTime) {
 		ImGui::Text("Camera Position");
 		ImGui::Text(glm::to_string(m_camera->GetPos()).c_str());
 		ImGui::Text("Light Position");
-		ImGui::Text(glm::to_string(m_lightPosition).c_str());
+		for (int i = 0; i < num_Lights + 1; i++)
+		{
+			ImGui::Text(glm::to_string(lightSources[i]->getPosition()).c_str());
+		}
 		ImGui::End();
 	#pragma endregion
 
+
+#pragma region PostProcess
+		ImGui::Begin("Post Processing");
+		ImGui::Checkbox("Enable Post Processing", &m_enablePostProcess);
+		ImGui::End();
+		if (m_enablePostProcess)
+		{
+			ImGui::Begin("Post Processing Settings");
+			ImGui::Checkbox("Distortion", &m_enableDistortion);
+			ImGui::Checkbox("Blur", &m_enableBlur);
+			ImGui::Checkbox("Grey Scale", &m_enableGrey);
+			if (m_enableDistortion == false && m_enableBlur == false && m_enableGrey == false)
+			{
+				m_enablePostProcess = false;
+				m_enableDistortion = true;
+			}
+			ImGui::End();
+		}
+#pragma endregion
+
 	m_camera->Update(deltaTime);
+	m_emitter->Update(deltaTime, m_camera->GetView());
 
 	if (createObject[0] == true){
 		DrawAABBFilled();
@@ -209,11 +237,12 @@ void LandscapeApp::update(float deltaTime) {
 	const mat4 sphereMat = /*glm::rotate(0.0f * time,glm::vec3(0,5,0)) **/ glm::translate(glm::vec3(vec3(glm::sin(time) * 3, 3, glm::cos(time) * 3)));//translate the sphere in an orbit 3 wide and 3 high
 	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 12, vec4(1, 0, 0, 0.5f), &sphereMat);
 
-	m_lightPosition = sphereMat[3].xyz;
+	lightSources[0]->SetPosition(sphereMat[3].xyz);
 	m_cameraPosition = m_camera->GetPos();
 
 	shader->Bind();
-
+	fbxShader->Bind();
+	particleShader->Bind();
 	//DrawGrid();
 	// quit if we press escape
 	aie::Input* input = aie::Input::getInstance();
@@ -239,10 +268,14 @@ void LandscapeApp::DrawGrid()
 
 void LandscapeApp::draw() {
 	
+	InitDrawPostProcess(m_enablePostProcess);
+
+
 	// wipe the screen to the background colour
 	clearScreen();
 	glPolygonMode(GL_FRONT_AND_BACK,GL_FRONT);
-	
+	Gizmos::draw(m_projectionMatrix * m_camera->GetView());
+
 	// update perspective in case window resized
 	m_projectionMatrix = glm::perspective(glm::pi<float>() * 0.25f,
 										  getWindowWidth() / (float)getWindowHeight(),
@@ -292,9 +325,11 @@ void LandscapeApp::draw() {
 
 	// Step 3: Bind the VAO
 	glUniform1f(glGetUniformLocation(shader->m_program, "lightAmbientStrength"), m_lightAmbientStrength);
-	glUniform3fv(glGetUniformLocation(shader->m_program, "lightPosition"),1, &m_lightPosition[0]);
-	glUniform3fv(glGetUniformLocation(shader->m_program, "lightSpecColor"), 1, &m_lightSpecColor[0]);
-	glUniform3fv(glGetUniformLocation(shader->m_program, "lightColor"), 1, &m_lightColor[0]);
+	glUniform3fv(glGetUniformLocation(shader->m_program, "lightPosition"), lightSources.size(), &lightSources[num_Lights]->getPosition()[0]);
+	//glUniform3fv(glGetUniformLocation(shader->m_program, "lightSpecColor"), num_Lights + 1, &m_lightSpecColor[0]);
+	glUniform1i(glGetUniformLocation(fbxShader->m_program, "lightSourceCount"), num_Lights);
+	glUniform3fv(glGetUniformLocation(shader->m_program, "lightColor"), lightSources.size(), &lightSources[num_Lights]->getColour()[0]);
+	glUniform3fv(glGetUniformLocation(shader->m_program, "attenuation"), lightSources.size(), &lightSources[num_Lights]->getAttenuation()[0]);
 	glUniform1f(glGetUniformLocation(shader->m_program, "specPower"), m_specPower);
 	glUniform3fv(glGetUniformLocation(shader->m_program, "camPos"), 1, &m_cameraPosition[0]);
 
@@ -338,9 +373,12 @@ void LandscapeApp::draw() {
 		glBindTexture(GL_TEXTURE_2D, diffuseTexture);
 		glUniform1i(glGetUniformLocation(fbxShader->m_program, "diffuseTexture"), 0);
 		glUniform1f(glGetUniformLocation(fbxShader->m_program, "lightAmbientStrength"), m_lightAmbientStrength);
-		glUniform3fv(glGetUniformLocation(fbxShader->m_program, "lightPosition"), 1, &m_lightPosition[0]);
-		glUniform3fv(glGetUniformLocation(fbxShader->m_program, "lightSpecColor"), 1, &m_lightSpecColor[0]);
-		glUniform3fv(glGetUniformLocation(fbxShader->m_program, "lightColor"), 1, &m_lightColor[0]);
+		glUniform3fv(glGetUniformLocation(fbxShader->m_program, "lightPosition"), 1, glm::value_ptr(lightSources[num_Lights]->getPosition()));
+		glUniform1i(glGetUniformLocation(fbxShader->m_program, "lightSourceCount"), num_Lights);
+		glUniform3fv(glGetUniformLocation(fbxShader->m_program, "attenuation"), 1, glm::value_ptr(lightSources[num_Lights]->getAttenuation()));
+
+		//glUniform3fv(glGetUniformLocation(fbxShader->m_program, "lightSpecColor"), 1, &m_lightSpecColor[0]);
+		glUniform3fv(glGetUniformLocation(fbxShader->m_program, "lightColor"), 1, glm::value_ptr(lightSources[num_Lights]->getColour()));
 		glUniform1f(glGetUniformLocation(fbxShader->m_program, "specPower"), m_specPower);
 		glUniform3fv(glGetUniformLocation(fbxShader->m_program, "camPos"), 1, &m_cameraPosition[0]);
 		//glUniform3fv(glGetUniformLocation(fbxShader->m_program, "modelSpecular"), 1, &mesh->m_material->specular[0]);
@@ -354,9 +392,17 @@ void LandscapeApp::draw() {
 	}
 	glUseProgram(0);
 
+	glUseProgram(particleShader->m_program);
+	int loc = glGetUniformLocation(particleShader->m_program,
+		"projectionView");
+	glUniformMatrix4fv(loc, 1, GL_FALSE,
+		glm::value_ptr(projectionView));
 
+		m_emitter->Draw();
 	//FBX - END
-	Gizmos::draw(m_projectionMatrix * m_camera->GetView());
+	glUseProgram(0);
+
+	DrawPostProcess(m_enablePostProcess);
 }
 
 void LandscapeApp::Vertex::SetupVertexAttribPointers()
@@ -546,7 +592,6 @@ void LandscapeApp::DestroyLandscape()
 void LandscapeApp::DrawLandscape()
 {
 	glDrawElements(GL_TRIANGLES, m_IndicesCount, GL_UNSIGNED_INT, 0);
-
 }
 
 void LandscapeApp::CreateFBXOpenGLBuffers(FBXFile * fbx)
@@ -607,9 +652,89 @@ void LandscapeApp::CleanupFBXOpenGLBuffers(FBXFile * file)
 	}
 }
 
+void LandscapeApp::SetupFrameBuffer()
+{
+	glGenFramebuffers(1, &m_fbo); 
+	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+	glGenTextures(1, &m_fboTexture);
+	glBindTexture(GL_TEXTURE_2D, m_fboTexture);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 1280, 720);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); 
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_fboTexture, 0);
+	glGenRenderbuffers(1, &m_fboDepth); glBindRenderbuffer(GL_RENDERBUFFER, m_fboDepth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, getWindowWidth(), getWindowHeight());
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_fboDepth);
+	GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0 }; 
+	glDrawBuffers(1, drawBuffers);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void LandscapeApp::SetupFrameQuad()
+{
+	glm::vec2 texelSize = 1.0f / glm::vec2(getWindowWidth(), getWindowHeight());
+	// fullscreen quad
+	glm::vec2 halfTexel = 1.0f / glm::vec2(getWindowWidth(), getWindowHeight()) * 0.5f;
+	float vertexData[] = { -1, -1, 0, 1, halfTexel.x, halfTexel.y,
+		1, 1, 0, 1, 1 - halfTexel.x, 1 - halfTexel.y, -1, 1, 0, 1,
+		halfTexel.x, 1 - halfTexel.y, -1, -1, 0, 1, halfTexel.x,
+		halfTexel.y, 1, -1, 0, 1, 1 - halfTexel.x, halfTexel.y,
+		1, 1, 0, 1, 1 - halfTexel.x, 1 - halfTexel.y, };
+	glGenVertexArrays(1, &m_vao); 
+	glBindVertexArray(m_vao);
+	glGenBuffers(1, &m_vbo); 
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo); 
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 6, vertexData, GL_STATIC_DRAW); 
+	glEnableVertexAttribArray(0); 
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0); 
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 6, ((char*)0) + 16);
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
 void LandscapeApp::AddLight()
 {
+
 }
+
+void LandscapeApp::InitDrawPostProcess(bool isOn)
+{
+	if (isOn)
+	{
+		// bind our target
+		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+		glViewport(0, 0, getWindowWidth(), getWindowHeight());
+		// clear the target 
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+}
+
+void LandscapeApp::DrawPostProcess(bool isOn)
+{
+	if (isOn)
+	{
+		// bind the back-buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, 1280, 720);
+		// just clear the back-buffer depth as 
+		//each pixel will be filled
+		glClear(GL_DEPTH_BUFFER_BIT);
+		// draw our full-screen quad
+		glUseProgram(frameBufferShader->m_program);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, m_fboTexture);
+		int loc2 = glGetUniformLocation(frameBufferShader->m_program, "target");
+		glUniform1i(glGetUniformLocation(frameBufferShader->m_program, "distort"), m_enableDistortion);
+		glUniform1i(glGetUniformLocation(frameBufferShader->m_program, "blur"), m_enableBlur);
+		glUniform1i(glGetUniformLocation(frameBufferShader->m_program, "greyScale"), m_enableGrey);
+		glUniform1i(loc2, 0);
+		glBindVertexArray(m_vao);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glUseProgram(0);
+	}
+}
+
 
 /*void LandscapeApp::LoadShader()
 {
