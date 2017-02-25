@@ -7,14 +7,14 @@ public:
 	Light(glm::vec3 pos, glm::vec3 col) {
 		this->position = pos;
 		this->colour = col;
-
+		this->specColor = col;
 	}
-	Light(glm::vec3 pos, glm::vec3 col,glm::vec3 atten) {
-		this->position = pos;
-		this->colour = col;
-		this->attenuation = atten;
-
-	}
+	//Light(glm::vec3 pos, glm::vec3 col,glm::vec3 atten) {
+	//	this->position = pos;
+	//	this->colour = col;
+	//	this->attenuation = atten;
+	//
+	//}
 	~Light() {
 
 	}
@@ -28,15 +28,17 @@ public:
 	glm::vec3 getColour() {
 		return colour;
 	}
-	glm::vec3 getAttenuation() {
-		return attenuation;
+	//glm::vec3 getAttenuation() {
+	//	return attenuation;
+	//}
+	glm::vec3 getSpecColor() {
+		return specColor;
 	}
-
 	glm::vec3 colour;
-
+	glm::vec3 specColor;
 private:
 	glm::vec3 position;
-	glm::vec3 attenuation = glm::vec3(1,0,0);
+	//glm::vec3 attenuation = glm::vec3(1,0,0);
 
 };
 

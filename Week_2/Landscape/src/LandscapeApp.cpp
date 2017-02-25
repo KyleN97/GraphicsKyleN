@@ -144,24 +144,10 @@ void LandscapeApp::update(float deltaTime) {
 	ImGui::Begin("Lighting Editor");
 
 	ImGui::SliderFloat("Specular Strength", &m_specPower, 0, 10000);
-	//ImGui::ColorEdit3("Light Color", glm::value_ptr(lightSources[num_Lights]->colour));
-	//ImGui::ColorEdit3("Spec Light Color", glm::value_ptr(m_lightSpecColor));
+	ImGui::ColorEdit3("Light Color", glm::value_ptr(lightSources[0]->colour));
+	ImGui::ColorEdit3("Spec Light Color", glm::value_ptr(lightSources[0]->specColor));
 	ImGui::End();
 
-	ImGui::Begin("Light");
-	//ImGui::InputFloat3("Light Position", &);
-	//ImGui::ColorEdit3("Light Color", &);
-	if (ImGui::Button("Create Point Light"))
-	{
-		lightSources.push_back(new Light(glm::vec3(0, 10, 0), glm::vec3(0, 1.0f, 0.0f),glm::vec3(1,0.01f,0.002f)));
-		num_Lights++;
-	}
-	if (ImGui::Button("Create Spot Light"))
-	{
-		lightSources.push_back(new Light(glm::vec3(10, 10, 10), glm::vec3(1, 0.2f, 0.5f)));
-		num_Lights++;
-	}
-	ImGui::End();
 #pragma endregion
 	
 	#pragma region Landscape GUI
@@ -198,10 +184,7 @@ void LandscapeApp::update(float deltaTime) {
 		ImGui::Text("Camera Position");
 		ImGui::Text(glm::to_string(m_camera->GetPos()).c_str());
 		ImGui::Text("Light Position");
-		for (int i = 0; i < num_Lights + 1; i++)
-		{
-			ImGui::Text(glm::to_string(lightSources[i]->getPosition()).c_str());
-		}
+		ImGui::Text(glm::to_string(lightSources[0]->getPosition()).c_str());
 		ImGui::End();
 	#pragma endregion
 
@@ -325,11 +308,9 @@ void LandscapeApp::draw() {
 
 	// Step 3: Bind the VAO
 	glUniform1f(glGetUniformLocation(shader->m_program, "lightAmbientStrength"), m_lightAmbientStrength);
-	glUniform3fv(glGetUniformLocation(shader->m_program, "lightPosition"), lightSources.size(), &lightSources[num_Lights]->getPosition()[0]);
-	//glUniform3fv(glGetUniformLocation(shader->m_program, "lightSpecColor"), num_Lights + 1, &m_lightSpecColor[0]);
-	glUniform1i(glGetUniformLocation(fbxShader->m_program, "lightSourceCount"), num_Lights);
-	glUniform3fv(glGetUniformLocation(shader->m_program, "lightColor"), lightSources.size(), &lightSources[num_Lights]->getColour()[0]);
-	glUniform3fv(glGetUniformLocation(shader->m_program, "attenuation"), lightSources.size(), &lightSources[num_Lights]->getAttenuation()[0]);
+	glUniform3fv(glGetUniformLocation(shader->m_program, "lightSpecColor"), 1, &lightSources[0]->getSpecColor()[0]);
+	glUniform3fv(glGetUniformLocation(shader->m_program, "lightPosition"), 1, &lightSources[0]->getPosition()[0]);
+	glUniform3fv(glGetUniformLocation(shader->m_program, "lightColor"), 1, &lightSources[0]->getColour()[0]);
 	glUniform1f(glGetUniformLocation(shader->m_program, "specPower"), m_specPower);
 	glUniform3fv(glGetUniformLocation(shader->m_program, "camPos"), 1, &m_cameraPosition[0]);
 
@@ -372,18 +353,13 @@ void LandscapeApp::draw() {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, diffuseTexture);
 		glUniform1i(glGetUniformLocation(fbxShader->m_program, "diffuseTexture"), 0);
-		glUniform1f(glGetUniformLocation(fbxShader->m_program, "lightAmbientStrength"), m_lightAmbientStrength);
-		glUniform3fv(glGetUniformLocation(fbxShader->m_program, "lightPosition"), 1, glm::value_ptr(lightSources[num_Lights]->getPosition()));
-		glUniform1i(glGetUniformLocation(fbxShader->m_program, "lightSourceCount"), num_Lights);
-		glUniform3fv(glGetUniformLocation(fbxShader->m_program, "attenuation"), 1, glm::value_ptr(lightSources[num_Lights]->getAttenuation()));
+		glUniform1f(glGetUniformLocation(shader->m_program, "lightAmbientStrength"), m_lightAmbientStrength);
+		glUniform3fv(glGetUniformLocation(shader->m_program, "lightSpecColor"), 1 + 1, &lightSources[0]->getSpecColor()[0]);
+		glUniform3fv(glGetUniformLocation(shader->m_program, "lightPosition"), 1 + 1, &lightSources[0]->getPosition()[0]);
+		glUniform3fv(glGetUniformLocation(shader->m_program, "lightColor"), 1, &lightSources[0]->getColour()[0]);
+		glUniform1f(glGetUniformLocation(shader->m_program, "specPower"), m_specPower);
+		glUniform3fv(glGetUniformLocation(shader->m_program, "camPos"), 1, &m_cameraPosition[0]);
 
-		//glUniform3fv(glGetUniformLocation(fbxShader->m_program, "lightSpecColor"), 1, &m_lightSpecColor[0]);
-		glUniform3fv(glGetUniformLocation(fbxShader->m_program, "lightColor"), 1, glm::value_ptr(lightSources[num_Lights]->getColour()));
-		glUniform1f(glGetUniformLocation(fbxShader->m_program, "specPower"), m_specPower);
-		glUniform3fv(glGetUniformLocation(fbxShader->m_program, "camPos"), 1, &m_cameraPosition[0]);
-		//glUniform3fv(glGetUniformLocation(fbxShader->m_program, "modelSpecular"), 1, &mesh->m_material->specular[0]);
-		//glUniform3fv(glGetUniformLocation(fbxShader->m_program, "modelAmbient"), 1, &mesh->m_material->ambient[0]);
-		//glUniform3fv(glGetUniformLocation(fbxShader->m_program, "modelDiffuse"), 1, &mesh->m_material->diffuse[0]);
 
 		// draw the mesh
 		glBindVertexArray(glData->vao);
@@ -716,7 +692,7 @@ void LandscapeApp::DrawPostProcess(bool isOn)
 	{
 		// bind the back-buffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glViewport(0, 0, 1280, 720);
+		glViewport(0, 0, getWindowWidth(), getWindowHeight());
 		// just clear the back-buffer depth as 
 		//each pixel will be filled
 		glClear(GL_DEPTH_BUFFER_BIT);
