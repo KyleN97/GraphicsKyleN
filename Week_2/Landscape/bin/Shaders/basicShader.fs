@@ -1,5 +1,4 @@
-#version 430	
-										
+#version 430										
 in vec2 fUv;												
 in vec3 fPos; 											
 in vec4 fNormal;											
@@ -10,29 +9,24 @@ uniform sampler2D rock;
 uniform sampler2D sand;	
 uniform sampler2D snow;
 uniform sampler2D splat;	
-//uniform int lightSourceCount; 
 uniform float lightAmbientStrength;						
 uniform vec3 lightPosition;								
 uniform vec3 lightColor;	
-//uniform vec3 attenuation;
 uniform vec3 lightSpecColor;		
-uniform float specPower = 32.0f;
-
+uniform float specPower = 32;
 uniform vec3 camPos;
 					
 void main ()												
 {		
-;
-
 		
 	vec3 norm = normalize(fNormal.xyz);
 
 	vec3 lightDir = normalize(lightPosition - fPos);
-	float diff = max(dot(norm, lightDir), 0.0f);
+	float diff = max(dot(norm, lightDir), 0.0);
 
 	vec3 R = reflect(-lightDir, norm);
 	vec3 E = normalize(camPos - fPos); 
-	float specTerm = pow(max(0.0f, dot(R, E)), specPower); 
+	float specTerm = pow(max(0.0, dot(R, E)), specPower); 
 		
 	vec3 totalDiffuse = diff * lightColor; 
 	vec3 finalAmbient =  lightColor * lightAmbientStrength; 
@@ -45,4 +39,4 @@ void main ()
 		texColor += sp.y * texture2D(grass,fUv);
 			texColor += sp.z * texture2D(rock,fUv);
 	frag_color = texColor * vec4(finalAmbient + totalDiffuse + totalSpecular,1.0);
- };
+};

@@ -22,8 +22,8 @@ class ParticleEmitter;
 class LandscapeApp : public aie::Application {
 public:
 
-	LandscapeApp();
-	virtual ~LandscapeApp();
+	LandscapeApp() {}
+	virtual ~LandscapeApp() {}
 
 	virtual bool startup();
 	virtual void shutdown();
@@ -39,7 +39,6 @@ public:
 	/*void CreateCube();*/
 	/*void DestroyCube();*/
 
-	void CreateObject(glm::vec3 position, float scale);
 	void DrawAABBFilled();
 	void DrawSphere();
 	void DrawRing();
@@ -53,7 +52,6 @@ public:
 
 	void SetupFrameBuffer();
 	void SetupFrameQuad();
-	void AddLight();
 
 	void InitDrawPostProcess(bool isOn);
 	void DrawPostProcess(bool isOn);
@@ -69,7 +67,8 @@ protected:
 	std::vector<Light*> lightSources;
 
 	FBXFile *m_myFbxModel;
-
+	glm::mat4 fbxMat;
+	float fbxScale = 1.0f;
 	aie::Texture* m_texture;
 	aie::Texture* m_grass;
 	aie::Texture* m_sand;
@@ -102,14 +101,11 @@ protected:
 	int M_LAND_WIDTH = 512, M_LAND_DEPTH = 512;
 	const float m_vertSeperation = 0.1f;
 	const float m_maxHeight = 2;
-	//World Lighting
-	//glm::vec3 m_lightPosition;
+
 	glm::vec3 m_cameraPosition;
-	//glm::vec3 m_lightColor;
 	float m_lightAmbientStrength;
 	int num_Lights = 0;
-	//glm::vec3 m_lightSpecColor = glm::vec3(1.0f,0.0f,0.0f);
-	//End World Lighting
+
 	//Object Creation
 	std::vector<glm::vec3> objectPosition;
 	std::vector<float> objectScale;

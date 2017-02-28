@@ -34,40 +34,23 @@ using glm::vec4;
 using glm::mat4;
 using aie::Gizmos;
 
-LandscapeApp::LandscapeApp() {
-
-}
-
-LandscapeApp::~LandscapeApp() {
-
-}
-
 bool LandscapeApp::startup() {
-	
 
-	setBackgroundColour(0.25f, 0.25f, 0.25f);
-	//---initialize gizmo primitive counts---
-	Gizmos::create(10000, 10000, 10000, 10000);
-
+	#pragma region CameraSetup
 	//---Setup camera starting position and where it's looking---
 	m_camera = new Camera();
-	m_camera->SetPosition(glm::vec3(5.0f,5.0f,5.0f));
-	m_camera->LookAt(glm::vec3(0.0f,0.0f,0.0f));
-
+	m_camera->SetPosition(glm::vec3(5.0f, 5.0f, 5.0f));
+	m_camera->LookAt(glm::vec3(0.0f, 0.0f, 0.0f));
+	#pragma endregion
+	#pragma region LightSetup
 	//---setup light---
-	//m_lightPosition = glm::vec3(0.0f,5.0f,0.0f);
-	//m_lightColor = glm::vec3(1,1,1);
 	lightSources.push_back(new Light(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(1, 1, 1)));
 	m_lightAmbientStrength = 0.05f;
-
-	//---load texture---
+	#pragma endregion
+	#pragma region TexturesSetup
+	//---load tile---
 	m_texture = new aie::Texture();
 	m_texture->load("Landscape/Textures/Tile.png");
-
-	m_myFbxModel = new FBXFile();
-	m_myFbxModel->load("./models/soulspear/soulspear.fbx", FBXFile::UNITS_CENTIMETER);
-	CreateFBXOpenGLBuffers(m_myFbxModel);
-	fbxShader = new Shader("Landscape/Shaders/fbxShader");
 	//---load heightmap---
 	m_heightMap = new aie::Texture();
 	m_heightMap->load("Landscape/Textures/heightmap.bmp");
@@ -86,16 +69,23 @@ bool LandscapeApp::startup() {
 	//---load splat--
 	m_splat = new aie::Texture();
 	m_splat->load("Landscape/Textures/splat.jpg");
-
-	//--Load in shader from file and check the errors and put to console---
+#pragma endregion
+	#pragma region FBXSetup
+	m_myFbxModel = new FBXFile();
+	m_myFbxModel->load("./models/soulspear/soulspear.fbx", FBXFile::UNITS_CENTIMETER);
+	CreateFBXOpenGLBuffers(m_myFbxModel);
+#pragma endregion
+	#pragma region ShaderSetup
+	fbxShader = new Shader("Landscape/Shaders/fbxShader");
 	shader = new Shader("Landscape/Shaders/basicShader");
 	particleShader = new Shader("Landscape/Shaders/particleShader");
 	frameBufferShader = new Shader("Landscape/Shaders/frameBufferShader");
-	SetupFrameBuffer();
-	SetupFrameQuad();
+#pragma endregion
+	#pragma region ParticlesSetup
 	m_emitter = new ParticleEmitter();
-	m_emitter->Init(1000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 0, 0, 1), glm::vec4(1, 1, 0, 1),glm::vec3(2,2,2));
-
+	m_emitter->Init(1000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 0, 0, 1), glm::vec4(1, 1, 0, 1), glm::vec3(2, 2, 2));
+#pragma endregion
+	#pragma region ObjectCreatorSetup
 	objectPosition.reserve(64);
 	objectScale.reserve(64);
 	createObject.reserve(64);
@@ -104,6 +94,14 @@ bool LandscapeApp::startup() {
 	objectScale.push_back(1);
 	objectColor.push_back(glm::vec4(1, 1, 1, 1));
 	createObject.push_back(false);
+#pragma endregion
+	setBackgroundColour(0.25f, 0.25f, 0.25f);
+	//---initialize gizmo primitive counts---
+	Gizmos::create(10000, 10000, 10000, 10000);
+
+	SetupFrameBuffer();
+	SetupFrameQuad();
+
 	//---Create the landscape---
 	CreateLandscape();
 
@@ -139,23 +137,21 @@ void LandscapeApp::update(float deltaTime) {
 	// query time since application started
 	float time = getTime();
 	static float wrap_width = 200.0f;
+
 	#pragma region Lighting GUI
-
 	ImGui::Begin("Lighting Editor");
-
 	ImGui::SliderFloat("Specular Strength", &m_specPower, 0, 10000);
 	ImGui::ColorEdit3("Light Color", glm::value_ptr(lightSources[0]->colour));
 	ImGui::ColorEdit3("Spec Light Color", glm::value_ptr(lightSources[0]->specColor));
 	ImGui::End();
-
-#pragma endregion
+	#pragma endregion
 	
 	#pragma region Landscape GUI
 	ImGui::Begin("Landscape Editor");
 	ImGui::Checkbox("WireFrame", &m_isWireframe);
 	ImGui::End();
 	ImGui::Begin("Object Creator");
-#pragma endregion
+	#pragma endregion
 	
 	#pragma region ObjectGUI
 	ImGui::InputFloat3("Object Position", glm::value_ptr(objectPosition[amountOfObjects - 1]));
@@ -188,8 +184,7 @@ void LandscapeApp::update(float deltaTime) {
 		ImGui::End();
 	#pragma endregion
 
-
-#pragma region PostProcess
+	#pragma region PostProcess
 		ImGui::Begin("Post Processing");
 		ImGui::Checkbox("Enable Post Processing", &m_enablePostProcess);
 		ImGui::End();
@@ -217,7 +212,12 @@ void LandscapeApp::update(float deltaTime) {
 		DrawSphere();
 	}
 
-	const mat4 sphereMat = /*glm::rotate(0.0f * time,glm::vec3(0,5,0)) **/ glm::translate(glm::vec3(vec3(glm::sin(time) * 3, 3, glm::cos(time) * 3)));//translate the sphere in an orbit 3 wide and 3 high
+	const mat4 sphereMat = glm::translate(glm::vec3(vec3(glm::sin(time) * 3, 3, glm::cos(time) * 3)));//translate the sphere in an orbit 3 wide and 3 high
+	fbxMat = { fbxScale,0.0f , 0.0f , 0.0f,
+			   0.0f ,fbxScale, 0.0f , 0.0f,
+			   0.0f ,0.0f , fbxScale, 0.0f,
+			   0.0f ,0.0f , 0.0f ,fbxScale };
+	fbxMat = glm::translate(glm::vec3(vec3(glm::sin(time) * 3)));
 	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 12, vec4(1, 0, 0, 0.5f), &sphereMat);
 
 	lightSources[0]->SetPosition(sphereMat[3].xyz);
@@ -253,7 +253,6 @@ void LandscapeApp::draw() {
 	
 	InitDrawPostProcess(m_enablePostProcess);
 
-
 	// wipe the screen to the background colour
 	clearScreen();
 	glPolygonMode(GL_FRONT_AND_BACK,GL_FRONT);
@@ -263,25 +262,12 @@ void LandscapeApp::draw() {
 	m_projectionMatrix = glm::perspective(glm::pi<float>() * 0.25f,
 										  getWindowWidth() / (float)getWindowHeight(),
 										  0.1f, 1000.f);
-
-	// STEP 1: enable the shader program for rendering
-	glUseProgram(shader->m_program);
-
-	// Step 2: send uniform variables to the shader
-	glm::mat4 projectionView = m_projectionMatrix * m_camera->GetView();
-	glUniformMatrix4fv(
-		glGetUniformLocation(shader->m_program, "projectionView"),
-		1,
-		false,
-		glm::value_ptr(projectionView));
-
-
-
+	#pragma region BindTextures
 	//setup texture in open gl - select the first texture as active, then bind it 
 	//also set it up as a uniform variable for shader
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_texture->getHandle());
-	glUniform1i(glGetUniformLocation(shader->m_program,"texture"),0);
+	glUniform1i(glGetUniformLocation(shader->m_program, "texture"), 0);
 
 	//setup grass texture
 	glActiveTexture(GL_TEXTURE1);
@@ -304,8 +290,20 @@ void LandscapeApp::draw() {
 	glActiveTexture(GL_TEXTURE5);
 	glBindTexture(GL_TEXTURE_2D, m_splat->getHandle());
 	glUniform1i(glGetUniformLocation(shader->m_program, "splat"), 5);
+	#pragma endregion
 
+	#pragma region Landscape
 
+	// STEP 1: enable the shader program for rendering
+	glUseProgram(shader->m_program);
+
+	// Step 2: send uniform variables to the shader
+	glm::mat4 projectionView = m_projectionMatrix * m_camera->GetView();
+	glUniformMatrix4fv(
+		glGetUniformLocation(shader->m_program, "projectionView"),
+		1,
+		false,
+		glm::value_ptr(projectionView));
 	// Step 3: Bind the VAO
 	glUniform1f(glGetUniformLocation(shader->m_program, "lightAmbientStrength"), m_lightAmbientStrength);
 	glUniform3fv(glGetUniformLocation(shader->m_program, "lightSpecColor"), 1, &lightSources[0]->getSpecColor()[0]);
@@ -313,12 +311,10 @@ void LandscapeApp::draw() {
 	glUniform3fv(glGetUniformLocation(shader->m_program, "lightColor"), 1, &lightSources[0]->getColour()[0]);
 	glUniform1f(glGetUniformLocation(shader->m_program, "specPower"), m_specPower);
 	glUniform3fv(glGetUniformLocation(shader->m_program, "camPos"), 1, &m_cameraPosition[0]);
-
 	// When we setup the geometry, we did a bunch of glEnableVertexAttribArray and glVertexAttribPointer method calls
 	// we also Bound the vertex array and index array via the glBindBuffer call.
 	// if we where not using VAO's we would have to do thoes method calls each frame here.
 	glBindVertexArray(m_Vao);
-
 	// Step 4: Draw Elements. We are using GL_TRIANGLES.
 	// we need to tell openGL how many indices there are, and the size of our indices
 	// when we setup the geometry, our indices where an unsigned char (1 byte for each indicy)
@@ -328,20 +324,17 @@ void LandscapeApp::draw() {
 	// Step 5: Now that we are done drawing the geometry
 	// unbind the vao, we are basically cleaning the opengl state
 	glBindVertexArray(0);
-
 	// Step 6: de-activate the shader program, dont do future rendering with it any more.
 	glUseProgram(0);
-
+	#pragma endregion
+	
+	#pragma region UniformsFBX
 	//FBX - START
 	glUseProgram(fbxShader->m_program);
-	float scale = 1.0f;
-	mat4 model = { scale,0.0f, 0.0f, 0.0f,
-		0.0f,scale, 0.0f, 0.0f,
-		0.0f, 0.0f,scale, 0.0f,
-		0.0f, 0.0f, 0.0f,1.0f };
+
 	// send uniform variables, in this case the "projectionViewWorldMatrix"
 	unsigned int mvpLoc = glGetUniformLocation(fbxShader->m_program, "projectionViewWorldMatrix");
-	glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(projectionView * model));
+	glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(projectionView * fbxMat));
 	// loop through each mesh within the fbx file
 	for (unsigned int i = 0; i < m_myFbxModel->getMeshCount(); ++i)
 	{
@@ -354,8 +347,8 @@ void LandscapeApp::draw() {
 		glBindTexture(GL_TEXTURE_2D, diffuseTexture);
 		glUniform1i(glGetUniformLocation(fbxShader->m_program, "diffuseTexture"), 0);
 		glUniform1f(glGetUniformLocation(shader->m_program, "lightAmbientStrength"), m_lightAmbientStrength);
-		glUniform3fv(glGetUniformLocation(shader->m_program, "lightSpecColor"), 1 + 1, &lightSources[0]->getSpecColor()[0]);
-		glUniform3fv(glGetUniformLocation(shader->m_program, "lightPosition"), 1 + 1, &lightSources[0]->getPosition()[0]);
+		glUniform3fv(glGetUniformLocation(shader->m_program, "lightSpecColor"), 1, &lightSources[0]->getSpecColor()[0]);
+		glUniform3fv(glGetUniformLocation(shader->m_program, "lightPosition"), 1, &lightSources[0]->getPosition()[0]);
 		glUniform3fv(glGetUniformLocation(shader->m_program, "lightColor"), 1, &lightSources[0]->getColour()[0]);
 		glUniform1f(glGetUniformLocation(shader->m_program, "specPower"), m_specPower);
 		glUniform3fv(glGetUniformLocation(shader->m_program, "camPos"), 1, &m_cameraPosition[0]);
@@ -367,17 +360,21 @@ void LandscapeApp::draw() {
 		glBindVertexArray(0);
 	}
 	glUseProgram(0);
+	#pragma endregion
 
+	#pragma region Particles
 	glUseProgram(particleShader->m_program);
 	int loc = glGetUniformLocation(particleShader->m_program,
 		"projectionView");
 	glUniformMatrix4fv(loc, 1, GL_FALSE,
 		glm::value_ptr(projectionView));
 
-		m_emitter->Draw();
+	m_emitter->Draw();
 	//FBX - END
 	glUseProgram(0);
+	#pragma endregion
 
+	
 	DrawPostProcess(m_enablePostProcess);
 }
 
@@ -414,12 +411,6 @@ void LandscapeApp::Vertex::SetupVertexAttribPointers()
 		sizeof(Vertex),
 		(void*)(sizeof(float) * 6)
 	);
-}
-
-void LandscapeApp::CreateObject(glm::vec3 position, float scale)
-{
-
-
 }
 
 void LandscapeApp::DrawAABBFilled()
@@ -667,11 +658,6 @@ void LandscapeApp::SetupFrameQuad()
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 6, ((char*)0) + 16);
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
-void LandscapeApp::AddLight()
-{
-
 }
 
 void LandscapeApp::InitDrawPostProcess(bool isOn)
