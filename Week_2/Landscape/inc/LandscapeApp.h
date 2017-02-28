@@ -66,6 +66,9 @@ protected:
 
 	std::vector<Light*> lightSources;
 
+	glm::vec3 m_positions[2];
+	glm::quat m_rotations[2];
+
 	FBXFile *m_myFbxModel;
 	glm::mat4 fbxMat;
 	float fbxScale = 1.0f;

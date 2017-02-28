@@ -98,6 +98,10 @@ bool LandscapeApp::startup() {
 	setBackgroundColour(0.25f, 0.25f, 0.25f);
 	//---initialize gizmo primitive counts---
 	Gizmos::create(10000, 10000, 10000, 10000);
+	m_positions[0] = glm::vec3(10, 5, 10);
+	m_positions[1] = glm::vec3(-10, 0, -10);
+	m_rotations[0] = glm::quat(glm::vec3(0,-1, 0));
+	m_rotations[1] = glm::quat(glm::vec3(0, 1, 0));
 
 	SetupFrameBuffer();
 	SetupFrameQuad();
@@ -217,7 +221,15 @@ void LandscapeApp::update(float deltaTime) {
 			   0.0f ,fbxScale, 0.0f , 0.0f,
 			   0.0f ,0.0f , fbxScale, 0.0f,
 			   0.0f ,0.0f , 0.0f ,fbxScale };
-	fbxMat = glm::translate(glm::vec3(vec3(glm::sin(time) * 3)));
+
+	float s = glm::cos(time) * 0.5f  + 0.5f;
+	glm::vec3 p = (1.0f - s) * m_positions[0] + s * m_positions[1];
+	glm::quat r = glm::slerp(m_rotations[0],m_rotations[1],s);
+
+	fbxMat = glm::translate(p) * glm::toMat4(r);
+
+
+	//fbxMat = glm::translate(glm::vec3(vec3(glm::sin(time) * 3)));
 	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 12, vec4(1, 0, 0, 0.5f), &sphereMat);
 
 	lightSources[0]->SetPosition(sphereMat[3].xyz);
