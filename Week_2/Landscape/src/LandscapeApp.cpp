@@ -217,7 +217,7 @@ void LandscapeApp::update(float deltaTime) {
 			   0.0f ,fbxScale, 0.0f , 0.0f,
 			   0.0f ,0.0f , fbxScale, 0.0f,
 			   0.0f ,0.0f , 0.0f ,fbxScale };
-	fbxMat = glm::translate(glm::vec3(vec3(glm::sin(time) * 3)));
+	fbxMat = glm::translate(glm::vec3(vec3(glm::sin(time) * 3,3,glm::sin(time) * 3)));
 	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 12, vec4(1, 0, 0, 0.5f), &sphereMat);
 
 	lightSources[0]->SetPosition(sphereMat[3].xyz);
