@@ -48,11 +48,13 @@ public:
 	void DrawLandscape();
 
 	void CreateFBXOpenGLBuffers(FBXFile *file);
+	void CreateFBXAnimatedOpenGLBuffers(FBXFile *fbx);
+
 	void CleanupFBXOpenGLBuffers(FBXFile *file);
 
 	void SetupFrameBuffer();
 	void SetupFrameQuad();
-
+	void PlayAnimationTo(int a,int b);
 	void InitDrawPostProcess(bool isOn);
 	void DrawPostProcess(bool isOn);
 
@@ -60,6 +62,7 @@ protected:
 	Camera* m_camera;
 	Shader* shader;
 	Shader* fbxShader;
+	Shader* animatedFBXShader;
 	Shader* particleShader;
 	Shader* frameBufferShader;
 	ParticleEmitter* m_emitter;
@@ -70,8 +73,14 @@ protected:
 	glm::quat m_rotations[2];
 
 	FBXFile *m_myFbxModel;
+	FBXFile* m_animatedFBXmodel;
+	FBXSkeleton* skeleton;
+	FBXAnimation* animation;
 	glm::mat4 fbxMat;
+	glm::mat4 fbxAnimationMat;
 	float fbxScale = 1.0f;
+	float fbxFrameCount;
+	float fbxCurrentFrame = 0;
 	aie::Texture* m_texture;
 	aie::Texture* m_grass;
 	aie::Texture* m_sand;
@@ -82,7 +91,7 @@ protected:
 
 	glm::mat4	m_viewMatrix;
 	glm::mat4	m_projectionMatrix;
-
+	bool showBones = false;
 	bool m_enablePostProcess = false;
 	bool m_enableDistortion = true;
 	bool m_enableBlur = false;
