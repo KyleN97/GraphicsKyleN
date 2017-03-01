@@ -57,7 +57,7 @@ public:
 	void PlayAnimationTo(int a,int b);
 	void InitDrawPostProcess(bool isOn);
 	void DrawPostProcess(bool isOn);
-
+	bool ColourPicker(const char* pLabel,ImVec4& oRGBA);
 protected:
 	Camera* m_camera;
 	Shader* shader;
