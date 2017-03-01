@@ -72,11 +72,21 @@ bool LandscapeApp::startup() {
 #pragma endregion
 	#pragma region FBXSetup
 	m_myFbxModel = new FBXFile();
+	m_animatedFBXmodel = new FBXFile();
+
+	skeleton = new FBXSkeleton();
+	animation = new FBXAnimation();
+
 	m_myFbxModel->load("./models/soulspear/soulspear.fbx", FBXFile::UNITS_CENTIMETER);
+	m_animatedFBXmodel->load("./models/pyro/pyro.fbx", FBXFile::UNITS_CENTIMETER);
 	CreateFBXOpenGLBuffers(m_myFbxModel);
+	CreateFBXAnimatedOpenGLBuffers(m_animatedFBXmodel);
+	fbxFrameCount = m_animatedFBXmodel->getAnimationByIndex(0)->totalFrames();
+	fbxCurrentFrame = 0.0f;
 #pragma endregion
 	#pragma region ShaderSetup
 	fbxShader = new Shader("Landscape/Shaders/fbxShader");
+	animatedFBXShader = new Shader("Landscape/Shaders/fbxAnimatedShader");
 	shader = new Shader("Landscape/Shaders/basicShader");
 	particleShader = new Shader("Landscape/Shaders/particleShader");
 	frameBufferShader = new Shader("Landscape/Shaders/frameBufferShader");
@@ -98,6 +108,10 @@ bool LandscapeApp::startup() {
 	setBackgroundColour(0.25f, 0.25f, 0.25f);
 	//---initialize gizmo primitive counts---
 	Gizmos::create(10000, 10000, 10000, 10000);
+	m_positions[0] = glm::vec3(10, 5, 10);
+	m_positions[1] = glm::vec3(-10, 0, -10);
+	m_rotations[0] = glm::quat(glm::vec3(0,-1, 0));
+	m_rotations[1] = glm::quat(glm::vec3(0, 1, 0));
 
 	SetupFrameBuffer();
 	SetupFrameQuad();
@@ -118,10 +132,16 @@ void LandscapeApp::shutdown() {
 	CleanupFBXOpenGLBuffers(m_myFbxModel);
 	m_myFbxModel->unload();
 	delete m_myFbxModel;
+	CleanupFBXOpenGLBuffers(m_animatedFBXmodel);
+	m_animatedFBXmodel->unload();
+	delete m_animatedFBXmodel;
 }
 
 void LandscapeApp::update(float deltaTime) {
-
+	Gizmos::clear();
+	// query time since application started
+	float time = getTime();
+	static float wrap_width = 200.0f;
 
 	if (m_isWireframe)
 	{
@@ -133,10 +153,28 @@ void LandscapeApp::update(float deltaTime) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	}
-	Gizmos::clear();
-	// query time since application started
-	float time = getTime();
-	static float wrap_width = 200.0f;
+	//if (showBones)
+	//{
+	//	for (int i =0;i< skeleton->m_boneCount;i++)
+	//	{
+	//		//const glm::mat4 trans = skeleton->m_bones[i];
+	//		//const glm::mat4 scaleDown = { glm::vec4(0.001, 0, 0, 0),
+	//		//						glm::vec4(0, 0.001, 0, 0),
+	//		//						glm::vec4(0, 0, 0.001, 0),
+	//		//						glm::vec4(0, 0, 0, 1) };
+	//		//const glm::mat4 finalTrans = trans * scaleDown;
+	//		//
+	//		//
+	//		//
+	//		//Gizmos::addSphere(glm::vec3(skeleton->m_bones[i][3][0], skeleton->m_bones[i][3][1],skeleton->m_bones[i][3][2]),2,6,6,glm::vec4(1,0,0,1), &finalTrans);
+	//		
+	//	}
+	//}
+	//else
+	//{
+	//	
+	//}
+
 
 	#pragma region Lighting GUI
 	ImGui::Begin("Lighting Editor");
@@ -203,6 +241,65 @@ void LandscapeApp::update(float deltaTime) {
 		}
 #pragma endregion
 
+#pragma region AnimatorUI
+		ImGui::Begin("Animator");
+		//glm::max(currentFrame, animation->m_startFrame);
+		fbxCurrentFrame += deltaTime * 24;
+		if (fbxCurrentFrame >= animation->m_endFrame)
+		{
+			fbxCurrentFrame = animation->m_startFrame;
+		}
+		std::string debugFrame = "Frame: " + std::to_string(fbxCurrentFrame);
+		ImGui::Text(debugFrame.c_str());
+		ImGui::Checkbox("Show Bones", &showBones);
+		if (ImGui::Button("Play All Pyro Animations"))
+		{
+			PlayAnimationTo(0, fbxFrameCount);
+		}
+		if (ImGui::Button("Pyro: Idle"))
+		{
+			PlayAnimationTo(1, 90);
+
+		}
+		if (ImGui::Button("Pyro: Take Dmg (Standing)"))
+		{
+			PlayAnimationTo(101, 160);
+		}
+		if (ImGui::Button("Pyro: Death (Standing)"))
+		{
+			PlayAnimationTo(171, 225);
+		}
+		if (ImGui::Button("Pyro: Crouch"))
+		{
+			PlayAnimationTo(235,305);
+		}
+		if (ImGui::Button("Pyro: Take Dmg (Crouched)"))
+		{
+			PlayAnimationTo(316, 375);
+		}
+		if (ImGui::Button("Pyro: Death (Crouched)"))
+		{
+			PlayAnimationTo(386, 425);
+		}
+		if (ImGui::Button("Pyro: Shoot"))
+		{
+			PlayAnimationTo(436,635);
+		}
+		if (ImGui::Button("Pyro: Reload (Standing)"))
+		{
+			PlayAnimationTo(646, 835);
+		}
+		if (ImGui::Button("Pyro: Reload (Crouched)"))
+		{
+			PlayAnimationTo(846, 985);
+		}
+		if (ImGui::Button("Pyro: Run"))
+		{
+			PlayAnimationTo(995, 1019);
+		}
+		ImGui::End();
+#pragma endregion
+
 	m_camera->Update(deltaTime);
 	m_emitter->Update(deltaTime, m_camera->GetView());
 
@@ -217,14 +314,48 @@ void LandscapeApp::update(float deltaTime) {
 			   0.0f ,fbxScale, 0.0f , 0.0f,
 			   0.0f ,0.0f , fbxScale, 0.0f,
 			   0.0f ,0.0f , 0.0f ,fbxScale };
+<<<<<<< HEAD
 	fbxMat = glm::translate(glm::vec3(vec3(glm::sin(time) * 3,3,glm::sin(time) * 3)));
+=======
+	fbxAnimationMat = { glm::vec4(0.001, 0, 0, 0),
+		glm::vec4(0, 0.001, 0, 0),
+		glm::vec4(0, 0, 0.001, 0),
+		glm::vec4(0, 0, 0, 1) };
+	float s = glm::cos(time) * 0.5f  + 0.5f;
+	
+	fbxAnimationMat = glm::translate(glm::vec3(vec3(glm::sin(time) * 3, 3, glm::cos(time) * 3))) * fbxAnimationMat;
+
+	glm::vec3 p = (1.0f - s) * m_positions[0] + s * m_positions[1];
+
+
+	glm::quat r = glm::slerp(m_rotations[0],m_rotations[1],s);
+
+
+	fbxMat = glm::translate(p) * glm::toMat4(r);
+	//fbxAnimationMat = glm::translate(q) * glm::toMat4(u);
+
+
+	//fbxMat = glm::translate(glm::vec3(vec3(glm::sin(time) * 3)));
+>>>>>>> Animation
 	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 12, vec4(1, 0, 0, 0.5f), &sphereMat);
+
+
+
+	skeleton = m_animatedFBXmodel->getSkeletonByIndex(0);
+	animation = m_animatedFBXmodel->getAnimationByIndex(0);
+	skeleton->evaluate(animation, getTime());
+	for (unsigned int bone_index = 0; bone_index < skeleton->m_boneCount; ++bone_index)
+	{
+		skeleton->m_nodes[bone_index]->updateGlobalTransform();
+	}
+	// evaluate the animation to update bones
 
 	lightSources[0]->SetPosition(sphereMat[3].xyz);
 	m_cameraPosition = m_camera->GetPos();
 
 	shader->Bind();
 	fbxShader->Bind();
+	animatedFBXShader->Bind();
 	particleShader->Bind();
 	//DrawGrid();
 	// quit if we press escape
@@ -262,6 +393,8 @@ void LandscapeApp::draw() {
 	m_projectionMatrix = glm::perspective(glm::pi<float>() * 0.25f,
 										  getWindowWidth() / (float)getWindowHeight(),
 										  0.1f, 1000.f);
+	glm::mat4 projectionView = m_projectionMatrix * m_camera->GetView();
+
 	#pragma region BindTextures
 	//setup texture in open gl - select the first texture as active, then bind it 
 	//also set it up as a uniform variable for shader
@@ -298,7 +431,6 @@ void LandscapeApp::draw() {
 	glUseProgram(shader->m_program);
 
 	// Step 2: send uniform variables to the shader
-	glm::mat4 projectionView = m_projectionMatrix * m_camera->GetView();
 	glUniformMatrix4fv(
 		glGetUniformLocation(shader->m_program, "projectionView"),
 		1,
@@ -346,20 +478,80 @@ void LandscapeApp::draw() {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, diffuseTexture);
 		glUniform1i(glGetUniformLocation(fbxShader->m_program, "diffuseTexture"), 0);
-		glUniform1f(glGetUniformLocation(shader->m_program, "lightAmbientStrength"), m_lightAmbientStrength);
-		glUniform3fv(glGetUniformLocation(shader->m_program, "lightSpecColor"), 1, &lightSources[0]->getSpecColor()[0]);
-		glUniform3fv(glGetUniformLocation(shader->m_program, "lightPosition"), 1, &lightSources[0]->getPosition()[0]);
-		glUniform3fv(glGetUniformLocation(shader->m_program, "lightColor"), 1, &lightSources[0]->getColour()[0]);
-		glUniform1f(glGetUniformLocation(shader->m_program, "specPower"), m_specPower);
-		glUniform3fv(glGetUniformLocation(shader->m_program, "camPos"), 1, &m_cameraPosition[0]);
+		glUniform1f(glGetUniformLocation(fbxShader->m_program, "lightAmbientStrength"), m_lightAmbientStrength);
+		glUniform3fv(glGetUniformLocation(fbxShader->m_program, "lightSpecColor"), 1, &lightSources[0]->getSpecColor()[0]);
+		glUniform3fv(glGetUniformLocation(fbxShader->m_program, "lightPosition"), 1, &lightSources[0]->getPosition()[0]);
+		glUniform3fv(glGetUniformLocation(fbxShader->m_program, "lightColor"), 1, &lightSources[0]->getColour()[0]);
+		glUniform1f(glGetUniformLocation(fbxShader->m_program, "specPower"), m_specPower);
+		glUniform3fv(glGetUniformLocation(fbxShader->m_program, "camPos"), 1, &m_cameraPosition[0]);
 
 
-		// draw the mesh
+		// draw the meshs
 		glBindVertexArray(glData->vao);
 		glDrawElements(GL_TRIANGLES, mesh->m_indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 	}
 	glUseProgram(0);
+	//------ANIMTED FBX-----
+
+	glUseProgram(animatedFBXShader->m_program);
+	// grab the skeleton and animation we want to use
+	skeleton->updateBones();
+
+	glUniformMatrix4fv(glGetUniformLocation(animatedFBXShader->m_program, "projectionViewWorldMatrix"), 1, GL_FALSE, glm::value_ptr(projectionView * fbxAnimationMat));
+																																					
+																																					
+																																					
+	for (unsigned int i = 0; i < m_animatedFBXmodel->getMeshCount(); ++i)
+	{
+
+		FBXMeshNode* mesh = m_animatedFBXmodel->getMeshByIndex(i);
+		GLMesh* glData = (GLMesh*)mesh->m_userData;
+		// get the texture from the model
+		unsigned int diffuseTexture = m_animatedFBXmodel->getTextureByIndex(mesh->m_material->DiffuseTexture);
+		int bones_location = glGetUniformLocation(animatedFBXShader->m_program, "bones");
+		// bid the texture and send it to our shader
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+		glUniform1i(glGetUniformLocation(animatedFBXShader->m_program, "diffuseTexture"), 0);
+		glUniformMatrix4fv(bones_location, skeleton->m_boneCount, GL_FALSE,(float*)skeleton->m_bones);
+		// draw the mesh
+		glBindVertexArray(glData->vao);
+		glDrawElements(GL_TRIANGLES, mesh->m_indices.size(), GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+	}
+
+	glUseProgram(0);
+	//glUseProgram(animatedFBXShader->m_program);
+	//
+	//// send uniform variables, in this case the "projectionViewWorldMatrix"
+	//unsigned int mvpLoc2 = glGetUniformLocation(fbxShader->m_program, "projectionViewWorldMatrix");
+	//glUniformMatrix4fv(mvpLoc2, 1, GL_FALSE, glm::value_ptr(projectionView * fbxMat));
+	//// loop through each mesh within the fbx file
+	//for (unsigned int i = 0; i < m_animatedFBXmodel->getMeshCount(); ++i)
+	//{
+	//	FBXMeshNode* mesh = m_animatedFBXmodel->getMeshByIndex(i);
+	//	GLMesh* glData = (GLMesh*)mesh->m_userData;
+	//	// get the texture from the model
+	//	unsigned int diffuseTexture = m_myFbxModel->getTextureByIndex(mesh->m_material->DiffuseTexture);
+	//	// bid the texture and send it to our shader
+	//	glActiveTexture(GL_TEXTURE0);
+	//	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+	//	glUniform1i(glGetUniformLocation(animatedFBXShader->m_program, "diffuseTexture"), 0);
+	//	glUniform1f(glGetUniformLocation(animatedFBXShader->m_program, "lightAmbientStrength"), m_lightAmbientStrength);
+	//	glUniform3fv(glGetUniformLocation(animatedFBXShader->m_program, "lightSpecColor"), 1, &lightSources[0]->getSpecColor()[0]);
+	//	glUniform3fv(glGetUniformLocation(animatedFBXShader->m_program, "lightPosition"), 1, &lightSources[0]->getPosition()[0]);
+	//	glUniform3fv(glGetUniformLocation(animatedFBXShader->m_program, "lightColor"), 1, &lightSources[0]->getColour()[0]);
+	//	glUniform1f(glGetUniformLocation(animatedFBXShader->m_program, "specPower"), m_specPower);
+	//	glUniform3fv(glGetUniformLocation(animatedFBXShader->m_program, "camPos"), 1, &m_cameraPosition[0]);
+	//
+	//
+	//	// draw the mesh
+	//	glBindVertexArray(glData->vao);
+	//	glDrawElements(GL_TRIANGLES, mesh->m_indices.size(), GL_UNSIGNED_INT, 0);
+	//	glBindVertexArray(0);
+	//}
+	//glUseProgram(0);
 	#pragma endregion
 
 	#pragma region Particles
@@ -606,6 +798,63 @@ void LandscapeApp::CreateFBXOpenGLBuffers(FBXFile * fbx)
 		}
 }
 
+void LandscapeApp::CreateFBXAnimatedOpenGLBuffers(FBXFile * fbx)
+{
+	// FBX Files contain multiple meshes, each with seperate material information
+	// loop through each mesh within the FBX file and cretae VAO, VBO and IBO buffers for each mesh.
+	// We can store that information within the mesh object via its "user data" void pointer variable.
+	for (unsigned int i = 0; i < fbx->getMeshCount(); i++)
+	{
+		// get the current mesh from file
+		FBXMeshNode *fbxMesh = fbx->getMeshByIndex(i);
+		GLMesh *glData = new GLMesh();
+		glGenVertexArrays(1, &glData->vao);
+		glBindVertexArray(glData->vao);
+		glGenBuffers(1, &glData->vbo);
+		glGenBuffers(1, &glData->ibo);
+		glBindBuffer(GL_ARRAY_BUFFER, glData->vbo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glData->ibo);
+		// fill the vbo with our vertices.
+		// the FBXLoader has convinently already defined a Vertex Structure for us.
+		glBufferData(GL_ARRAY_BUFFER,
+			fbxMesh->m_vertices.size() * sizeof(FBXVertex),
+			fbxMesh->m_vertices.data(), GL_STATIC_DRAW);
+		// fill the ibo with the indices.
+		// fbx meshes can be large, so indices are stored as an unsigned int.
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+			fbxMesh->m_indices.size() * sizeof(unsigned int),
+			fbxMesh->m_indices.data(), GL_STATIC_DRAW);
+		// Setup Vertex Attrib pointers
+		// remember, we only need to setup the approprate attributes for the shaders that will be rendering
+		// this fbx object.
+		glEnableVertexAttribArray(0); //position
+		glEnableVertexAttribArray(1); //normals
+		glEnableVertexAttribArray(2); //tangents
+		glEnableVertexAttribArray(3); //texcoords
+		glEnableVertexAttribArray(4); //weights
+		glEnableVertexAttribArray(5); //indices
+		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(FBXVertex),
+			(void*)FBXVertex::PositionOffset);
+		glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, sizeof(FBXVertex),
+			(void*)FBXVertex::NormalOffset);
+		glVertexAttribPointer(2, 4, GL_FLOAT, GL_TRUE, sizeof(FBXVertex),
+			(void*)FBXVertex::TangentOffset);
+		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(FBXVertex),
+			(void*)FBXVertex::TexCoord1Offset);
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(FBXVertex),
+			(void*)FBXVertex::WeightsOffset);
+		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(FBXVertex),
+			(void*)FBXVertex::IndicesOffset);
+		// TODO: add any additional attribute pointers required for shader use.
+		// unbind
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		// attach our GLMesh object to the m_userData pointer.
+		fbxMesh->m_userData = glData;
+	}
+}
+
 void LandscapeApp::CleanupFBXOpenGLBuffers(FBXFile * file)
 {
 	for (unsigned int i = 0; i < file->getMeshCount(); i++)
@@ -658,6 +907,13 @@ void LandscapeApp::SetupFrameQuad()
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 6, ((char*)0) + 16);
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void LandscapeApp::PlayAnimationTo(int a, int b)
+{
+	animation->m_startFrame = a;
+	animation->m_endFrame = b;
+	fbxCurrentFrame = animation->m_startFrame;
 }
 
 void LandscapeApp::InitDrawPostProcess(bool isOn)
