@@ -1,5 +1,5 @@
 #include "ParticleEmitter.h"
-
+#include <imgui.h>
 
 void ParticleEmitter::Init(unsigned int a_maxParticles,
 						   unsigned int a_emitRate,
@@ -85,7 +85,8 @@ void ParticleEmitter::Emit()
 	particle.velocity.y = (rand() / (float)RAND_MAX) * 2 - 1;
 	particle.velocity.z = (rand() / (float)RAND_MAX) * 2 - 1;
 	particle.velocity = glm::normalize(particle.velocity) *
-		velocity;
+		velocity;
+
 }
 
 void ParticleEmitter::Draw()
@@ -100,7 +101,7 @@ void ParticleEmitter::Draw()
 	glDrawElements(GL_TRIANGLES, m_firstDead * 6, GL_UNSIGNED_INT, 0);
 }
 
-void ParticleEmitter::Update(float a_deltaTime, const glm::mat4 & a_cameraTransform)
+void ParticleEmitter::Update(float a_deltaTime, const glm::mat4 & a_cameraTransform,glm::vec3 camPos)
 {
 
 	// spawn particles
@@ -144,13 +145,15 @@ void ParticleEmitter::Update(float a_deltaTime, const glm::mat4 & a_cameraTransf
 				-halfSize, 0, 1);
 			m_vertexData[quad * 4 + 3].colour = particle->colour;
 			// create billboard transform
-			glm::vec3 zAxis = glm::normalize(glm::vec3(a_cameraTransform[3]) - particle->position);
+			glm::vec3 zAxis = glm::normalize(glm::vec3(camPos - particle->position));
 			glm::vec3 xAxis = glm::cross(glm::vec3(a_cameraTransform[1]), zAxis);
 			glm::vec3 yAxis = glm::cross(zAxis, xAxis);
+
 			glm::mat4 billboard(glm::vec4(xAxis, 0),
-				glm::vec4(yAxis, 0),
-				glm::vec4(zAxis, 0),
-				glm::vec4(0, 0, 0, 1));
+								glm::vec4(yAxis, 0),
+								glm::vec4(zAxis, 0),
+								glm::vec4(0, 0, 0, 1));
+
 			m_vertexData[quad * 4 + 0].position = billboard *
 				m_vertexData[quad * 4 + 0].position +
 				glm::vec4(particle->position, 0);

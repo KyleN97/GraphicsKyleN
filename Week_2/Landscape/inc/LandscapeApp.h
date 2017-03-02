@@ -2,15 +2,18 @@
 
 #include "Application.h"
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 #include <vector>
-#include "FBXFile.h"
-class GLMesh
-{
-public:
-	unsigned int vao;
-	unsigned int vbo;
-	unsigned int ibo;
-};
+//#include "FBXFile.h"
+//class GLMesh
+//{
+//public:
+//	unsigned int vao;
+//	unsigned int vbo;
+//	unsigned int ibo;
+//};
 namespace aie
 {
 	class Texture;
@@ -19,11 +22,14 @@ class Shader;
 class Light;
 class Camera;
 class ParticleEmitter;
+class PostProcessor;
+class GameObject;
+class FBXGameObject;
 class LandscapeApp : public aie::Application {
 public:
 
-	LandscapeApp() {}
-	virtual ~LandscapeApp() {}
+	LandscapeApp();
+	virtual ~LandscapeApp();
 
 	virtual bool startup();
 	virtual void shutdown();
@@ -39,32 +45,28 @@ public:
 	/*void CreateCube();*/
 	/*void DestroyCube();*/
 
-	void DrawAABBFilled();
-	void DrawSphere();
-	void DrawRing();
 	void CreateLandscape();
 	void DestroyLandscape();
 
 	void DrawLandscape();
 
-	void CreateFBXOpenGLBuffers(FBXFile *file);
-	void CreateFBXAnimatedOpenGLBuffers(FBXFile *fbx);
+	//void CreateFBXOpenGLBuffers(FBXFile *file);
+	//void CreateFBXAnimatedOpenGLBuffers(FBXFile *fbx);
 
-	void CleanupFBXOpenGLBuffers(FBXFile *file);
+	//void CleanupFBXOpenGLBuffers(FBXFile *file);
 
-	void SetupFrameBuffer();
-	void SetupFrameQuad();
-	void PlayAnimationTo(int a,int b);
-	void InitDrawPostProcess(bool isOn);
-	void DrawPostProcess(bool isOn);
-	bool ColourPicker(const char* pLabel,ImVec4& oRGBA);
+	//void PlayAnimationTo(int a, int b);
+
+
 protected:
 	Camera* m_camera;
 	Shader* shader;
-	Shader* fbxShader;
-	Shader* animatedFBXShader;
+	//Shader* fbxShader;
+	//Shader* animatedFBXShader;
 	Shader* particleShader;
-	Shader* frameBufferShader;
+	PostProcessor* postProcessor;
+	GameObject* ObjectCreator;
+	std::vector<FBXGameObject*> gameModels;
 	ParticleEmitter* m_emitter;
 
 	std::vector<Light*> lightSources;
@@ -72,15 +74,15 @@ protected:
 	glm::vec3 m_positions[2];
 	glm::quat m_rotations[2];
 
-	FBXFile *m_myFbxModel;
-	FBXFile* m_animatedFBXmodel;
-	FBXSkeleton* skeleton;
-	FBXAnimation* animation;
-	glm::mat4 fbxMat;
-	glm::mat4 fbxAnimationMat;
-	float fbxScale = 1.0f;
-	float fbxFrameCount;
-	float fbxCurrentFrame = 0;
+	//FBXFile *m_myFbxModel;
+	//FBXFile* m_animatedFBXmodel;
+	//FBXSkeleton* skeleton;
+	//FBXAnimation* animation;
+	//glm::mat4 fbxMat;
+	//glm::mat4 fbxAnimationMat;
+	//float fbxScale = 1.0f;
+	//float fbxFrameCount;
+	//float fbxCurrentFrame = 0;
 	aie::Texture* m_texture;
 	aie::Texture* m_grass;
 	aie::Texture* m_sand;
@@ -91,11 +93,8 @@ protected:
 
 	glm::mat4	m_viewMatrix;
 	glm::mat4	m_projectionMatrix;
-	bool showBones = false;
-	bool m_enablePostProcess = false;
-	bool m_enableDistortion = true;
-	bool m_enableBlur = false;
-	bool m_enableGrey = false;
+	//bool showBones = false;
+
 	bool m_isWireframe = false;
 	unsigned int m_vertCount;
 	unsigned int m_IndicesCount;
@@ -103,30 +102,24 @@ protected:
 	unsigned int m_Vao;
 	unsigned int m_Vbo;
 	unsigned int m_Ibo;
-	//Post
-	unsigned int m_vao;
-	unsigned int m_vbo;
-	unsigned int m_fbo;
-	unsigned int m_fboTexture;
-	unsigned int m_fboDepth;
-	//---
+
 	int M_LAND_WIDTH = 512, M_LAND_DEPTH = 512;
 	const float m_vertSeperation = 0.1f;
 	const float m_maxHeight = 2;
 
 	glm::vec3 m_cameraPosition;
-	float m_lightAmbientStrength;
+	//float m_lightAmbientStrength;
 	int num_Lights = 0;
 
 	//Object Creation
-	std::vector<glm::vec3> objectPosition;
-	std::vector<float> objectScale;
-	std::vector<bool> createObject;
-	std::vector<glm::vec4> objectColor;
-	std::vector<std::string> objectType;
-	int amountOfObjects = 1;
+	//std::vector<glm::vec3> objectPosition;
+	//std::vector<float> objectScale;
+	//std::vector<bool> createObject;
+	//std::vector<glm::vec4> objectColor;
+	//std::vector<std::string> objectType;
+	//int amountOfObjects = 1;
 	//End Object Creation
-	float m_specPower = 32.0f;
+	//float m_specPower = 32.0f;
 	struct Vertex
 	{
 		glm::vec4 pos;

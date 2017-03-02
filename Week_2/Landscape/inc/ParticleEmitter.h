@@ -26,7 +26,7 @@ public:
 		const glm::vec4& a_startColour, const glm::vec4& a_endColour,glm::vec3 pos);
 	void Emit();
 	void Draw();
-	void Update(float a_deltaTime,const glm::mat4& a_cameraTransform);
+	void Update(float a_deltaTime,const glm::mat4& a_cameraTransform, glm::vec3 camPos);
 protected:
 	struct Particle {
 		glm::vec3 position;
