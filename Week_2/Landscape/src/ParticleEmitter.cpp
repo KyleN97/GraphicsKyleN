@@ -1,6 +1,6 @@
 #include "ParticleEmitter.h"
 #include <imgui.h>
-
+#include <glm/ext.hpp>
 void ParticleEmitter::Init(unsigned int a_maxParticles,
 						   unsigned int a_emitRate,
 						   float a_lifetimeMin, float a_lifetimeMax,
@@ -89,8 +89,13 @@ void ParticleEmitter::Emit()
 
 }
 
-void ParticleEmitter::Draw()
+void ParticleEmitter::Draw(glm::mat4 projectionView)
 {
+	m_shader->Bind();
+	int loc = glGetUniformLocation(m_shader->m_program,
+		"projectionView");
+	glUniformMatrix4fv(loc, 1, GL_FALSE,
+		glm::value_ptr(projectionView));
 	// sync the particle vertex buffer
 	// based on how many alive particles there are
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
@@ -99,6 +104,7 @@ void ParticleEmitter::Draw()
 	// draw particles
 	glBindVertexArray(m_vao);
 	glDrawElements(GL_TRIANGLES, m_firstDead * 6, GL_UNSIGNED_INT, 0);
+	glUseProgram(0);
 }
 
 void ParticleEmitter::Update(float a_deltaTime, const glm::mat4 & a_cameraTransform,glm::vec3 camPos)

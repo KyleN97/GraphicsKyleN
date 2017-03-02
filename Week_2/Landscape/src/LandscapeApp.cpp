@@ -53,11 +53,9 @@ bool LandscapeApp::startup() {
 	m_camera->SetPosition(glm::vec3(5.0f, 5.0f, 5.0f));
 	m_camera->LookAt(glm::vec3(0.0f, 0.0f, 0.0f));
 	#pragma endregion
-	#pragma region LightSetup
-	//---setup light---
+
 	lightSources.push_back(new Light(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(1, 1, 1)));
-	//m_lightAmbientStrength = 0.05f;
-	#pragma endregion
+
 	#pragma region TexturesSetup
 	//---load tile---
 	m_texture = new aie::Texture();
@@ -81,27 +79,19 @@ bool LandscapeApp::startup() {
 	m_splat = new aie::Texture();
 	m_splat->load("Landscape/Textures/splat.jpg");
 #pragma endregion
-	#pragma region FBXSetup
 	gameModels.push_back(new FBXGameObject("./models/pyro/pyro.fbx","Landscape/Shaders/fbxAnimatedShader",true));
 	gameModels[0]->Scale(glm::vec3(0.001f, 0.001f, 0.001f));
 	gameModels.push_back(new FBXGameObject("./models/soulspear/soulspear.fbx", "Landscape/Shaders/fbxShader",false));
-#pragma endregion
-	#pragma region ShaderSetup
-	//fbxShader = new Shader("Landscape/Shaders/fbxShader");
-	//animatedFBXShader = new Shader("Landscape/Shaders/fbxAnimatedShader");
+
 	shader = new Shader("Landscape/Shaders/basicShader");
-	particleShader = new Shader("Landscape/Shaders/particleShader");
-	//frameBufferShader = new Shader("Landscape/Shaders/frameBufferShader");
-#pragma endregion
-	#pragma region ParticlesSetup
-	m_emitter = new ParticleEmitter();
-	m_emitter->Init(100000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 1, 0, 1), glm::vec4(0, 0, 0, 1), glm::vec3(2, 2, 2));
-	#pragma endregion
-	#pragma region ObjectCreatorSetup
+
+	m_emitter.push_back(new ParticleEmitter("Landscape/Shaders/particleShader"));
+	m_emitter[0]->Init(100000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 1, 0, 1), glm::vec4(0, 0, 0, 1), glm::vec3(2, 2, 2));
+
 	ObjectCreator = new GameObject();
-#pragma endregion
 	postProcessor = new PostProcessor();
 	setBackgroundColour(0.25f, 0.25f, 0.25f);
+
 	//---initialize gizmo primitive counts---
 	Gizmos::create(10000, 10000, 10000, 10000);
 	m_positions[0] = glm::vec3(10, 5, 10);
@@ -145,15 +135,10 @@ void LandscapeApp::update(float deltaTime) {
 	static float wrap_width = 200.0f;
 
 	if (m_isWireframe)
-	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-	}
 	else
-	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-	}
+	
 	//if (showBones)
 	//{
 	//	for (int i =0;i< skeleton->m_boneCount;i++)
@@ -177,56 +162,42 @@ void LandscapeApp::update(float deltaTime) {
 	//}
 
 
-	#pragma region Lighting GUI
 	ImGui::Begin("Lighting Editor");
 	ImGui::SliderFloat("Ambient Strength", &lightSources[0]->ambientIntensity, 0, 1);
 	ImGui::SliderFloat("Specular Strength", &lightSources[0]->SpecIntensity, 0, 10000);
 	ImGui::ColorEdit3("Light Color", glm::value_ptr(lightSources[0]->colour));
 	ImGui::ColorEdit3("Spec Light Color", glm::value_ptr(lightSources[0]->specColor));
 	ImGui::End();
-	#pragma endregion
 	
-	#pragma region Landscape GUI
 	ImGui::Begin("Landscape Editor");
 	ImGui::Checkbox("WireFrame", &m_isWireframe);
 	ImGui::End();
-	#pragma endregion
-	
-	#pragma region ObjectGUI
-	
+
 	ObjectCreator->DrawUI();
-	
 	ObjectCreator->DrawEditUI();
 
-#pragma endregion
+	ImGui::Begin("Debugger");
+	std::string frameRatestr = "Average Framerate " + std::to_string(1.0f / deltaTime);
+	ImGui::Text(frameRatestr.c_str());
+	ImGui::Text("Camera Position");
+	ImGui::Text(glm::to_string(m_camera->GetPos()).c_str());
+	ImGui::Text("Light Position");
+	ImGui::Text(glm::to_string(lightSources[0]->getPosition()).c_str());
+	ImGui::End();
 
-	#pragma region DebuggerGUI
-		ImGui::Begin("Debugger");
-		std::string frameRatestr = "Average Framerate " + std::to_string(1.0f / deltaTime);
-		ImGui::Text(frameRatestr.c_str());
-		ImGui::Text("Camera Position");
-		ImGui::Text(glm::to_string(m_camera->GetPos()).c_str());
-		ImGui::Text("Light Position");
-		ImGui::Text(glm::to_string(lightSources[0]->getPosition()).c_str());
-		ImGui::End();
-	#pragma endregion
-
-	#pragma region PostProcess
 	postProcessor->DrawPostProcessUI();
-	#pragma endregion
 
 	m_camera->Update(deltaTime);
 
 
-
-	m_emitter->Update(deltaTime, m_camera->GetView(),m_camera->GetPos());
-	for (auto& element :gameModels)
-	{
+	for (auto& member : m_emitter){
+		member->Update(deltaTime, m_camera->GetView(), m_camera->GetPos());
+	}
+	for (auto& element :gameModels){
 		element->Update(deltaTime, getTime());
 		element->DrawUI(deltaTime);
 	}
-	for (auto& element : ObjectCreator->gameObjects)
-	{
+	for (auto& element : ObjectCreator->gameObjects){
 		element->Draw();
 		element->Update(deltaTime);
 	}
@@ -237,8 +208,6 @@ void LandscapeApp::update(float deltaTime) {
 	glm::vec3 p = (1.0f - s) * m_positions[0] + s * m_positions[1];
 	glm::quat r = glm::slerp(m_rotations[0],m_rotations[1],s);
 
-	//gameModels[0]->Translate(glm::vec3(glm::vec3(glm::sin(time) * 3, 3, glm::cos(time) * 3)));
-	//gameModels[0]->Scale(glm::vec3(0.001, 0.001, 0.001));
 	gameModels[1]->SlerpTo(p, r);
 
 	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 12, vec4(1, 0, 0, 0.5f), &sphereMat);
@@ -246,7 +215,8 @@ void LandscapeApp::update(float deltaTime) {
 	lightSources[0]->SetPosition(sphereMat[3].xyz);
 	m_cameraPosition = m_camera->GetPos();
 
-	//DrawGrid();
+	DrawGrid();
+
 	// quit if we press escape
 	aie::Input* input = aie::Input::getInstance();
 
@@ -283,6 +253,7 @@ void LandscapeApp::draw() {
 										  0.1f, 1000.f);
 	glm::mat4 projectionView = m_projectionMatrix * m_camera->GetView();
 
+	#pragma region Landscape
 	#pragma region BindTextures
 	//setup texture in open gl - select the first texture as active, then bind it 
 	//also set it up as a uniform variable for shader
@@ -312,9 +283,6 @@ void LandscapeApp::draw() {
 	glBindTexture(GL_TEXTURE_2D, m_splat->getHandle());
 	glUniform1i(glGetUniformLocation(shader->m_program, "splat"), 5);
 	#pragma endregion
-
-	#pragma region Landscape
-
 	// STEP 1: enable the shader program for rendering
 	shader->Bind();
 
@@ -352,19 +320,10 @@ void LandscapeApp::draw() {
 	{
 		member->Draw(projectionView,lightSources,m_camera);
 	}
-	
-
-	#pragma region Particles
-	particleShader->Bind();
-	int loc = glGetUniformLocation(particleShader->m_program,
-		"projectionView");
-	glUniformMatrix4fv(loc, 1, GL_FALSE,
-		glm::value_ptr(projectionView));
-
-	m_emitter->Draw();
-	//FBX - END
-	glUseProgram(0);
-	#pragma endregion
+	for (auto& member : m_emitter)
+	{
+		member->Draw(projectionView);
+	}
 
 	postProcessor->DrawPostProcess(postProcessor->m_enablePostProcess, getWindowHeight(), getWindowWidth());
 }

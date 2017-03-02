@@ -50,39 +50,18 @@ public:
 
 	void DrawLandscape();
 
-	//void CreateFBXOpenGLBuffers(FBXFile *file);
-	//void CreateFBXAnimatedOpenGLBuffers(FBXFile *fbx);
-
-	//void CleanupFBXOpenGLBuffers(FBXFile *file);
-
-	//void PlayAnimationTo(int a, int b);
-
-
 protected:
 	Camera* m_camera;
 	Shader* shader;
-	//Shader* fbxShader;
-	//Shader* animatedFBXShader;
-	Shader* particleShader;
 	PostProcessor* postProcessor;
 	GameObject* ObjectCreator;
 	std::vector<FBXGameObject*> gameModels;
-	ParticleEmitter* m_emitter;
-
+	std::vector<ParticleEmitter*> m_emitter;
 	std::vector<Light*> lightSources;
 
 	glm::vec3 m_positions[2];
 	glm::quat m_rotations[2];
 
-	//FBXFile *m_myFbxModel;
-	//FBXFile* m_animatedFBXmodel;
-	//FBXSkeleton* skeleton;
-	//FBXAnimation* animation;
-	//glm::mat4 fbxMat;
-	//glm::mat4 fbxAnimationMat;
-	//float fbxScale = 1.0f;
-	//float fbxFrameCount;
-	//float fbxCurrentFrame = 0;
 	aie::Texture* m_texture;
 	aie::Texture* m_grass;
 	aie::Texture* m_sand;
@@ -108,18 +87,7 @@ protected:
 	const float m_maxHeight = 2;
 
 	glm::vec3 m_cameraPosition;
-	//float m_lightAmbientStrength;
-	int num_Lights = 0;
 
-	//Object Creation
-	//std::vector<glm::vec3> objectPosition;
-	//std::vector<float> objectScale;
-	//std::vector<bool> createObject;
-	//std::vector<glm::vec4> objectColor;
-	//std::vector<std::string> objectType;
-	//int amountOfObjects = 1;
-	//End Object Creation
-	//float m_specPower = 32.0f;
 	struct Vertex
 	{
 		glm::vec4 pos;
