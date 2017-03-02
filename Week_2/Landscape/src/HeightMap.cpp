@@ -37,6 +37,7 @@ HeightMap::HeightMap()
 
 HeightMap::~HeightMap()
 {
+	DestroyHeightMap();
 }
 
 void HeightMap::CreateHeightMap()
@@ -207,6 +208,10 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 
 void HeightMap::DestroyHeightMap()
 {
+	for (int i = 0; i < NUM_ITEMS; i++)
+	{
+		delete m_textures[i];
+	}
 }
 
 void HeightMap::Vertex::SetupVertexAttribPointers()

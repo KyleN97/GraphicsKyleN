@@ -51,20 +51,21 @@ bool LandscapeApp::startup() {
 	m_camera = new Camera();
 	m_camera->SetPosition(glm::vec3(5.0f, 5.0f, 5.0f));
 	m_camera->LookAt(glm::vec3(0.0f, 0.0f, 0.0f));
-
+	//Create a light at a certain position and colour -  push it into a vector of lights
 	lightSources.push_back(new Light(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(1, 1, 1)));
-
+	//Create a gameModel and push it into a vector
 	gameModels.push_back(new FBXGameObject("./models/pyro/pyro.fbx","Landscape/Shaders/fbxAnimatedShader",true));
+	//Give this certain object a scale
 	gameModels[0]->Scale(glm::vec3(0.001f, 0.001f, 0.001f));
 	gameModels.push_back(new FBXGameObject("./models/soulspear/soulspear.fbx", "Landscape/Shaders/fbxShader",false));
-
-	//shader = new Shader("Landscape/Shaders/basicShader");
-
+	//Create an emitter and push it into a vector
 	m_emitter.push_back(new ParticleEmitter("Landscape/Shaders/particleShader"));
 	m_emitter[0]->Init(100000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 1, 0, 1), glm::vec4(0, 0, 0, 1), glm::vec3(2, 2, 2));
-
+	//Create an Object Creator
 	ObjectCreator = new GameObject();
+	//Create a Post Processor
 	postProcessor = new PostProcessor();
+	//Setting the background colour of the scene
 	setBackgroundColour(0.25f, 0.25f, 0.25f);
 
 	//---initialize gizmo primitive counts---
@@ -73,11 +74,14 @@ bool LandscapeApp::startup() {
 	m_positions[1] = glm::vec3(-10, 0, -10);
 	m_rotations[0] = glm::quat(glm::vec3(0,-1, 0));
 	m_rotations[1] = glm::quat(glm::vec3(0, 1, 0));
-
+	//Setup the Fram Buffer and Quad for the window
 	postProcessor->SetupFrameBuffer(getWindowHeight(),getWindowWidth());
 	postProcessor->SetupFrameQuad  (getWindowHeight(),getWindowWidth());
 
-	//---Create the landscape---
+	cubeShader = new Shader("Landscape/Shaders/cube");
+	cubetex = new aie::Texture("Landscape/Textures/Tile.png");
+	CreateCube();
+	//---Create the heightmap---
 	heightMap = new HeightMap();
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -85,21 +89,21 @@ bool LandscapeApp::startup() {
 }
 
 void LandscapeApp::shutdown() {
-	//DestroyLandscape();
-	//delete shader;
 	delete m_camera;
+	delete heightMap;
+	delete postProcessor;
+	delete ObjectCreator;
 	Gizmos::destroy();
-	for (auto& member : gameModels)
-	{
+	for (auto& member : gameModels){
 		delete member;
 	}
-	
-	//CleanupFBXOpenGLBuffers(m_myFbxModel);
-	//m_myFbxModel->unload();
-	//delete m_myFbxModel;
-	//CleanupFBXOpenGLBuffers(m_animatedFBXmodel);
-	//m_animatedFBXmodel->unload();
-	//delete m_animatedFBXmodel;
+	for (auto& member : m_emitter){
+		delete member;
+	}
+	for (auto& member : lightSources) {
+		delete member;
+	}
+	//delete all pointers, cleanup 
 }
 
 void LandscapeApp::update(float deltaTime) {
@@ -108,6 +112,7 @@ void LandscapeApp::update(float deltaTime) {
 	float time = getTime();
 	static float wrap_width = 200.0f;
 
+	//Turn on/off wireframe if enabled
 	if (m_isWireframe)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	else
@@ -147,6 +152,7 @@ void LandscapeApp::update(float deltaTime) {
 	ImGui::Checkbox("WireFrame", &m_isWireframe);
 	ImGui::End();
 
+	//Draw the Object Creator UI
 	ObjectCreator->DrawUI();
 	ObjectCreator->DrawEditUI();
 
@@ -158,9 +164,11 @@ void LandscapeApp::update(float deltaTime) {
 	ImGui::Text("Light Position");
 	ImGui::Text(glm::to_string(lightSources[0]->getPosition()).c_str());
 	ImGui::End();
+	//Drawing UI
 
+	//Draw the Post Process UI
 	postProcessor->DrawPostProcessUI();
-
+	//Update the camera
 	m_camera->Update(deltaTime);
 
 
@@ -175,22 +183,25 @@ void LandscapeApp::update(float deltaTime) {
 		element->Draw();
 		element->Update(deltaTime);
 	}
-
-	const mat4 sphereMat = glm::translate(glm::vec3(vec3(glm::sin(time) * 3, 3, glm::cos(time) * 3)));//translate the sphere in an orbit 3 wide and 3 high
+	//Call update and Draw for the emitters,models and the object creator
 
 	float s = glm::cos(time) * 0.5f  + 0.5f;
 	glm::vec3 p = (1.0f - s) * m_positions[0] + s * m_positions[1];
 	glm::quat r = glm::slerp(m_rotations[0],m_rotations[1],s);
 
 	gameModels[1]->SlerpTo(p, r);
+	//Slerping a game model between two points
+	const mat4 sphereMat = glm::translate(glm::vec3(vec3(glm::sin(time) * 3, 3, glm::cos(time) * 3)));//translate the sphere in an orbit 3 wide and 3 high
 
 	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 12, vec4(1, 0, 0, 0.5f), &sphereMat);
-
+	//Adding a sphere into the scene and rotation in a circle which will be the lights postion
 	lightSources[0]->SetPosition(sphereMat[3].xyz);
 	m_cameraPosition = m_camera->GetPos();
-
+	//Setting the main lights position and storing the camera pos
+	
+	//Draw a Grid
 	DrawGrid();
-
+	
 	// quit if we press escape
 	aie::Input* input = aie::Input::getInstance();
 
@@ -214,7 +225,7 @@ void LandscapeApp::DrawGrid()
 }
 
 void LandscapeApp::draw() {
-	
+	//Init the Post Processor
 	postProcessor->InitDrawPostProcess(postProcessor->m_enablePostProcess, getWindowHeight(), getWindowWidth());
 	// wipe the screen to the background colour
 	clearScreen();
@@ -226,7 +237,7 @@ void LandscapeApp::draw() {
 										  getWindowWidth() / (float)getWindowHeight(),
 										  0.1f, 1000.f);
 	glm::mat4 projectionView = m_projectionMatrix * m_camera->GetView();
-
+	//Draw the heightmap
 	heightMap->DrawHeightMap(projectionView, lightSources, m_camera);
 
 	for (auto& member : gameModels)
@@ -237,55 +248,113 @@ void LandscapeApp::draw() {
 	{
 		member->Draw(projectionView);
 	}
+	//Draw the game models and emitter
 
+	// Ask openGL to use our shader program
+	glUseProgram(cubeShader->m_program);
+
+	glUniformMatrix4fv(glGetUniformLocation(cubeShader->m_program, "projectionView"), 1, false, glm::value_ptr(projectionView));
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, cubetex->getHandle());
+	glUniform1i(glGetUniformLocation(cubeShader->m_program, "texture"), 0);
+
+	// Bind VAO
+	glBindVertexArray(cubeData.m_vao);
+
+	// DRAW STUFF
+	glDrawElements(GL_TRIANGLES, cubeData.m_IndicesCount, GL_UNSIGNED_BYTE, 0);
+
+	// unbind the VAO, cleaning up after ourselves
+	glBindVertexArray(0);
+
+	// Deactivate the shader
+	glUseProgram(0);
+
+
+	//Draw the Post Processor
 	postProcessor->DrawPostProcess(postProcessor->m_enablePostProcess, getWindowHeight(), getWindowWidth());
 }
 
-/*void LandscapeApp::CreateCube()
+void LandscapeApp::CreateCube()
 {
-Vertex verts[] = {
+	Vertex verts[] = {
 
-// POSITION						COLOR
-// FRONT FACE				  - RED
-{glm::vec4(-0.5f,-0.5f, 0.5f, 1.0f),glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)},	// 0
-{glm::vec4(0.5f,-0.5f, 0.5f, 1.0f),glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)},	// 1
-{glm::vec4(0.5f, 0.5f, 0.5f, 1.0f),glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)},	// 2
-{glm::vec4(-0.5f, 0.5f, 0.5f, 1.0f),glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)},	// 3
-};
+		// POSITION						COLOR
+		// FRONT FACE				  - RED
+		{glm::vec4(-0.5f,-0.5f, 0.5f, 1.0f),glm::vec2(0.0f, 0.0f)},	// 0
+		{glm::vec4(0.5f,-0.5f, 0.5f, 1.0f), glm::vec2(0.0f, 1.0f)},	// 1
+		{glm::vec4(0.5f, 0.5f, 0.5f, 1.0f), glm::vec2(1.0f, 1.0f)},	// 2
+		{glm::vec4(-0.5f, 0.5f, 0.5f, 1.0f),glm::vec2(1.0f, 0.0f)},
+		
+		{glm::vec4(-.5f, -.5f, -.5f, 1),    glm::vec2(1,0)},
+		{glm::vec4(-.5f, .5f, -.5f, 1),     glm::vec2(1,1)},
+		{glm::vec4(.5f, .5f, -.5f, 1),      glm::vec2(0,1)},// 3
+		{glm::vec4(.5f, -.5f, -.5f, 1),     glm::vec2(0,0)},// 3
 
-unsigned char indices[] = {
-0, 1, 2,	0, 2, 3			// front facme
-};
+//{glm::vec4(-0.5f,-0.5f, 0.5f, 1.0f),glm::vec2(0.0f, 0.0f)},	// 0
+//{ glm::vec4(0.5f,-0.5f, 0.5f, 1.0f), glm::vec2(0.0f, 1.0f) },	// 1
+//{ glm::vec4(0.5f, 0.5f, 0.5f, 1.0f), glm::vec2(1.0f, 1.0f) },	// 2
+//{ glm::vec4(-0.5f, 0.5f, 0.5f, 1.0f),glm::vec2(1.0f, 0.0f) },
+//
+//{ glm::vec4(-.5f, -.5f, -.5f, 1),    glm::vec2(1,0) },
+//{ glm::vec4(-.5f, .5f, -.5f, 1),     glm::vec2(1,1) },
+//{ glm::vec4(.5f, .5f, -.5f, 1),      glm::vec2(0,1) },// 3
+//{ glm::vec4(.5f, -.5f, -.5f, 1),     glm::vec2(0,0) },// 3
+//
+//{glm::vec4(-0.5f,-0.5f, 0.5f, 1.0f),glm::vec2(0.0f, 0.0f)},	// 0
+//{ glm::vec4(0.5f,-0.5f, 0.5f, 1.0f), glm::vec2(0.0f, 1.0f) },	// 1
+//{ glm::vec4(0.5f, 0.5f, 0.5f, 1.0f), glm::vec2(1.0f, 1.0f) },	// 2
+//{ glm::vec4(-0.5f, 0.5f, 0.5f, 1.0f),glm::vec2(1.0f, 0.0f) },
+//
+//{ glm::vec4(-.5f, -.5f, -.5f, 1),    glm::vec2(1,0) },
+//{ glm::vec4(-.5f, .5f, -.5f, 1),     glm::vec2(1,1) },
+//{ glm::vec4(.5f, .5f, -.5f, 1),      glm::vec2(0,1) },// 3
+//{ glm::vec4(.5f, -.5f, -.5f, 1),     glm::vec2(0,0) }// 3
+								  // 3
+	};
+	
+	unsigned char indices[] = {
+		0,2,1,  0,3,2,
+		4,3,0,  4,7,3,
+		4,1,5,  4,0,1,
+		3,6,2,  3,7,6,
+		1,6,5,  1,2,6,
+		7,5,6,  7,4,5
+	};
+	
+	cubeData.m_IndicesCount = sizeof(indices) / sizeof(unsigned char);
+	
+	// Generate the VAO and Bind bind it.
+	// Our VBO (vertex buffer object) and IBO (Index Buffer Object) will be "grouped" with this VAO
+	// other settings will also be grouped with the VAO. this is used so we can reduce draw calls in the render method.
+	glGenVertexArrays(1, &cubeData.m_vao);
+	glBindVertexArray(cubeData.m_vao);
+	
+	// Create our VBO and IBO.
+	// Then tell Opengl what type of buffer they are used for
+	// VBO a buffer in graphics memory to contains our vertices
+	// IBO a buffer in graphics memory to contain our indices.
+	// Then Fill the buffers with our generated data.
+	// This is taking our verts and indices from ram, and sending them to the graphics card
+	glGenBuffers(1, &cubeData.m_vbo);
+	glGenBuffers(1, &cubeData.m_ibo);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, cubeData.m_vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cubeData.m_ibo);
+	
+	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
 
-m_IndicesCount = sizeof(indices) / sizeof(unsigned char);
-
-// Generate the VAO and Bind bind it.
-// Our VBO (vertex buffer object) and IBO (Index Buffer Object) will be "grouped" with this VAO
-// other settings will also be grouped with the VAO. this is used so we can reduce draw calls in the render method.
-glGenVertexArrays(1, &m_Vao);
-glBindVertexArray(m_Vao);
-
-// Create our VBO and IBO.
-// Then tell Opengl what type of buffer they are used for
-// VBO a buffer in graphics memory to contains our vertices
-// IBO a buffer in graphics memory to contain our indices.
-// Then Fill the buffers with our generated data.
-// This is taking our verts and indices from ram, and sending them to the graphics card
-glGenBuffers(1, &m_Vbo);
-glGenBuffers(1, &m_Ibo);
-
-glBindBuffer(GL_ARRAY_BUFFER, m_Vbo);
-glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Ibo);
-
-glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
-glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-Vertex::SetupVertexAttribPointers();
-
-glBindVertexArray(0);
-glBindBuffer(GL_ARRAY_BUFFER, 0);
-glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-}*/
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(float) * 4));
+	
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
 
 /*void LandscapeApp::DestroyCube()
 {

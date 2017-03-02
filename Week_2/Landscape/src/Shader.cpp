@@ -12,7 +12,6 @@ Shader::Shader(const std::string & fileName)
 	{
 		glAttachShader(m_program, m_shaders[i]);
 	}
-//uniforms go here bind
 
 	glLinkProgram(m_program);
 	CheckShaderError(m_program, GL_LINK_STATUS, true, "Error: Program linking failed: ");

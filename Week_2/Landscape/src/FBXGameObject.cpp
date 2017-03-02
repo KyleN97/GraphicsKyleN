@@ -26,6 +26,7 @@ FBXGameObject::FBXGameObject(const char* fileName,const char* shaderName,bool ha
 FBXGameObject::~FBXGameObject()
 {
 	CleanupFBXOpenGLBuffers(m_fbxFile);
+	m_fbxFile->unload();
 }
 
 void FBXGameObject::CreateFBXOpenGLBuffers(FBXFile * fbx)
