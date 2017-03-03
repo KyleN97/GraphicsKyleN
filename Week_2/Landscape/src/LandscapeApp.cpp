@@ -60,7 +60,7 @@ bool LandscapeApp::startup() {
 	gameModels.push_back(new FBXGameObject("./models/soulspear/soulspear.fbx", "Landscape/Shaders/fbxShader", false));
 	//Create an emitter and push it into a vector
 	m_emitter.push_back(new ParticleEmitter("Landscape/Shaders/particleShader"));
-	m_emitter[0]->Init(100000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 1, 0, 1), glm::vec4(0, 0, 0, 1), glm::vec3(2, 2, 2));
+	m_emitter[0]->Init(100000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 1, 0, 1), glm::vec4(0, 0, 0, 1), glm::vec3(10, 2, 2));
 	//Create an Object Creator
 	ObjectCreator = new GameObject();
 	//Create a Post Processor
@@ -107,6 +107,7 @@ void LandscapeApp::update(float deltaTime) {
 	Gizmos::clear();
 	// query time since application started
 	float time = getTime();
+	heightMap->timePassed = time;
 	static float wrap_width = 200.0f;
 
 	//Turn on/off wireframe if enabled

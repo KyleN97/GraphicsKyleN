@@ -15,10 +15,10 @@ public:
 	HeightMap();
 	~HeightMap();
 
-	void CreateHeightMap();
-	void DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> lightSources, Camera* camera);
+	void CreateHeightMap();//Creates the heightmap
+	void DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> lightSources, Camera* camera);//Draws the heightmap
 	void DestroyHeightMap();
-
+	float timePassed;//Total time is used for the water shader
 private:
 	Shader* m_shader;
 	std::vector<aie::Texture*> m_textures;
@@ -30,6 +30,7 @@ private:
 		snow,
 		rock,
 		splat,
+		water,
 		NUM_ITEMS
 	};//Textures used for the heightmap
 	TexturePositions m_texPositions;
@@ -44,7 +45,9 @@ private:
 	int m_LandWidth = 512, m_LandDepth = 512;
 	const float m_vertSeperation = 0.1f;
 	const float m_maxHeight = 2;
-
+	float waterAmplitude = 1.0f;
+	float waterFrequency = 1.0f;
+	float waterSpeed = 1.0f;
 	struct Vertex
 	{
 		glm::vec4 pos;

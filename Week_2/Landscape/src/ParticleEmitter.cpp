@@ -182,7 +182,7 @@ void ParticleEmitter::DrawUI()
 {
 	ImGui::Begin("Particles");
 	ImGui::SliderInt("Max Particles", (int*)&m_maxParticles,0,9999);
-	ImGui::SliderInt("Emit Rate", (int*)&m_emitRate,0,9999);
+	ImGui::SliderFloat("Emit Rate", &m_emitRate,0.2,2);
 	ImGui::SliderFloat("Lifetime Min", &m_lifespanMin,0,5);
 	ImGui::SliderFloat("Lifetime Max", &m_lifespanMax,0,5);
 	ImGui::SliderFloat("Velocity Min", &m_velocityMin,0,5);
