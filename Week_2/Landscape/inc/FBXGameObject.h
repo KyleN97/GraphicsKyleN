@@ -34,23 +34,23 @@ public:
 	void DrawUI(float d_time);
 
 	void Translate(glm::vec3 transAmount) {
-		modelTransforms.m_transform = glm::translate(transAmount);
+		modelTransforms.m_transform = modelTransforms.m_transform * glm::translate(transAmount);
 	}
 	void Scale(glm::vec3 scaleAmount) {
-		modelTransforms.m_transform = glm::scale(scaleAmount);
+		modelTransforms.m_transform = modelTransforms.m_transform  * glm::scale(scaleAmount);
 		//modelTransforms.m_scale = scaleAmount.x;
 	}
 	void Rotate(float angle,glm::vec3 rotAmount) {
-		modelTransforms.m_transform = glm::rotate(angle, rotAmount);
+		modelTransforms.m_transform = modelTransforms.m_transform *  glm::rotate(angle, rotAmount);
 	}
 	void SlerpTo(glm::vec3 a, glm::quat b) {
 		modelTransforms.m_transform = glm::translate(a) * glm::toMat4(b);
 	}
 private:
-	Shader* m_shader;
-	FBXFile *m_fbxFile;
-	FBXSkeleton* m_skeleton;
-	FBXAnimation* m_animation;
+	Shader* m_shader;//Shader for the model
+	FBXFile *m_fbxFile;//File for the model
+	FBXSkeleton* m_skeleton;//Skeletion for the model
+	FBXAnimation* m_animation;//Animation for the model
 	struct Transforms 
 	{
 		float m_scale = 1.0f;
@@ -59,10 +59,10 @@ private:
 								 glm::vec4(0,m_scale,0,0),
 								 glm::vec4(0,0,m_scale,0),
 								 glm::vec4(0,0,0,1)};
-	};
-	Transforms modelTransforms;
-	float fbxFrameCount;
-	float fbxCurrentFrame = 0;
-	bool isAnimated = false;
+	};//Transforms data of the model
+	Transforms modelTransforms;//Accesbile transforms of the model
+	float fbxFrameCount;//amount of frames in animation
+	float fbxCurrentFrame = 0;//frame display counter
+	bool isAnimated = false;//is the fbx animated
 };
 

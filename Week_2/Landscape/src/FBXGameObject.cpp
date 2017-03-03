@@ -19,7 +19,7 @@ FBXGameObject::FBXGameObject(const char* fileName,const char* shaderName,bool ha
 	}
 	isAnimated = hasAnimations;
 	m_shader = new Shader(shaderName);
-
+	//Load in the fbx and create a shader and determine wether it is animated or nor and setup buffers dependent
 }
 
 
@@ -149,6 +149,7 @@ void FBXGameObject::PlayAnimationTo(int a, int b)
 	m_animation->m_startFrame = a;
 	m_animation->m_endFrame = b;
 	fbxCurrentFrame = m_animation->m_startFrame;
+	//Will change the start and end frames of the animation and play the anim for that duration
 }
 
 void FBXGameObject::Update(float d_time, float anim_Timer)
@@ -162,6 +163,7 @@ void FBXGameObject::Update(float d_time, float anim_Timer)
 		{
 			m_skeleton->m_nodes[bone_index]->updateGlobalTransform();
 		}
+		//Update the bones - skeleton and animation if it is animated
 	}
 }
 
@@ -169,27 +171,28 @@ void FBXGameObject::Draw(glm::mat4 projectionView, std::vector<Light*>lightSourc
 {
 	if (isAnimated){
 		//------ANIMTED FBX-----
-
+		//bind the shader
 		m_shader->Bind();
 		// grab the skeleton and animation we want to use
 		m_skeleton->updateBones();
 
 		glUniformMatrix4fv(glGetUniformLocation(m_shader->m_program, "projectionViewWorldMatrix"),
 			1, GL_FALSE, glm::value_ptr(projectionView * modelTransforms.m_transform));
-
+		//pass in the proj matrix to the shader
 		for (unsigned int i = 0; i < m_fbxFile->getMeshCount(); ++i)
 		{
 
 			FBXMeshNode* mesh = m_fbxFile->getMeshByIndex(i);
 			GLMesh* glData = (GLMesh*)mesh->m_userData;
 			// get the texture from the model
-			unsigned int diffuseTexture = m_fbxFile->getTextureByIndex(mesh->m_material->DiffuseTexture);
+			unsigned int diffuseTexture = mesh->m_material->textureIDs[0];
 			int bones_location = glGetUniformLocation(m_shader->m_program, "bones");
 			// bid the texture and send it to our shader
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, diffuseTexture);
 			glUniform1i(glGetUniformLocation(m_shader->m_program, "diffuseTexture"), 0);
 			glUniformMatrix4fv(bones_location, m_skeleton->m_boneCount, GL_FALSE, (float*)m_skeleton->m_bones);
+			//pass in the diffuse texture and bones
 			// draw the mesh
 			glBindVertexArray(glData->vao);
 			glDrawElements(GL_TRIANGLES, mesh->m_indices.size(), GL_UNSIGNED_INT, 0);
@@ -198,7 +201,7 @@ void FBXGameObject::Draw(glm::mat4 projectionView, std::vector<Light*>lightSourc
 
 		glUseProgram(0);
 	}
-	else {
+	else {//If not animated
 		//FBX - START
 		m_shader->Bind();
 
@@ -223,9 +226,9 @@ void FBXGameObject::Draw(glm::mat4 projectionView, std::vector<Light*>lightSourc
 			glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightColor"), 1,		  &lightSources[0]->getColour()[0]);
 			glUniform1f(glGetUniformLocation(m_shader->m_program, "specPower"),				  lightSources[0]->getSpecIntensity());
 			glUniform3fv(glGetUniformLocation(m_shader->m_program, "camPos"), 1,			  &m_camera->GetPos()[0]);
+			//Pass through all lighting data,cam pos and diffuse and light the model accordingly.
 
-
-			// draw the meshs
+			// draw the mesh
 			glBindVertexArray(glData->vao);
 			glDrawElements(GL_TRIANGLES, mesh->m_indices.size(), GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
@@ -293,4 +296,5 @@ void FBXGameObject::DrawUI(float d_time)
 		}
 		ImGui::End();
 	}
+	//Drawing a simple animation key frame ui which allows you to play certain animations and displays the animation key frames.
 }

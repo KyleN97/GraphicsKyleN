@@ -3,7 +3,6 @@ in vec2 fUv;
 in vec3 fPos; 											
 in vec4 fNormal;											
 out vec4 frag_color;										
-uniform sampler2D texture;
 uniform sampler2D grass;	
 uniform sampler2D rock;	
 uniform sampler2D sand;	

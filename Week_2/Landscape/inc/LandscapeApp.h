@@ -28,7 +28,6 @@ public:
 
 	void DrawGrid();
 
-	void CreateCube();
 	/*void DestroyCube();*/
 
 
@@ -53,16 +52,4 @@ protected:
 	glm::vec3 m_cameraPosition;
 
 
-	Shader* cubeShader;
-	aie::Texture* cubetex;
-	struct CubeData
-	{
-		unsigned int m_vbo, m_ibo, m_vao,m_IndicesCount;
-	};
-	struct Vertex
-	{
-		glm::vec4 pos;
-		glm::vec2 uv;
-	};
-	CubeData cubeData;
 };

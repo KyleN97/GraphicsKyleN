@@ -9,9 +9,7 @@ HeightMap::HeightMap()
 	{
 		m_textures.push_back(NULL);
 	}
-	//---load tile---
-	m_textures[tile] = new aie::Texture();
-	m_textures[tile]->load("Landscape/Textures/Tile.png");
+
 	//---load heightmap---
 	m_textures[heightmap] = new aie::Texture();
 	m_textures[heightmap]->load("Landscape/Textures/heightmap.bmp");
@@ -146,33 +144,29 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 #pragma region BindTextures
 	//setup texture in open gl - select the first texture as active, then bind it 
 	//also set it up as a uniform variable for shader
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_textures[tile]->getHandle());
-	glUniform1i(glGetUniformLocation(m_shader->m_program, "texture"), 0);
-
+	m_shader->Bind();
+	//bind the shader and use it
 	//setup grass texture
-	glActiveTexture(GL_TEXTURE1);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_textures[grass]->getHandle());
-	glUniform1i(glGetUniformLocation(m_shader->m_program, "grass"), 1);
+	glUniform1i(glGetUniformLocation(m_shader->m_program, "grass"), 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, m_textures[sand]->getHandle());
+	glUniform1i(glGetUniformLocation(m_shader->m_program, "sand"), 1);
 
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, m_textures[rock]->getHandle());
-	glUniform1i(glGetUniformLocation(m_shader->m_program, "rock"), 2);
-
+	glBindTexture(GL_TEXTURE_2D, m_textures[snow]->getHandle());
+	glUniform1i(glGetUniformLocation(m_shader->m_program, "snow"), 2);
 
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, m_textures[sand]->getHandle());
-	glUniform1i(glGetUniformLocation(m_shader->m_program, "sand"), 3);
+	glBindTexture(GL_TEXTURE_2D, m_textures[rock]->getHandle());
+	glUniform1i(glGetUniformLocation(m_shader->m_program, "rock"), 3);
 
 	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, m_textures[snow]->getHandle());
-	glUniform1i(glGetUniformLocation(m_shader->m_program, "snow"), 4);
-
-	glActiveTexture(GL_TEXTURE5);
 	glBindTexture(GL_TEXTURE_2D, m_textures[splat]->getHandle());
-	glUniform1i(glGetUniformLocation(m_shader->m_program, "splat"), 5);
+	glUniform1i(glGetUniformLocation(m_shader->m_program, "splat"), 4);
 
-	m_shader->Bind();
 
 	glUniformMatrix4fv(
 		glGetUniformLocation(m_shader->m_program, "projectionView"),

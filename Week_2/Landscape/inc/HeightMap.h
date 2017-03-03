@@ -24,7 +24,6 @@ private:
 	std::vector<aie::Texture*> m_textures;
 	enum TexturePositions
 	{
-		tile,
 		heightmap,
 		grass,
 		sand,
@@ -32,7 +31,7 @@ private:
 		rock,
 		splat,
 		NUM_ITEMS
-	};
+	};//Textures used for the heightmap
 	TexturePositions m_texPositions;
 
 	unsigned int m_Vao;

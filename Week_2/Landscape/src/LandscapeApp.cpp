@@ -57,7 +57,7 @@ bool LandscapeApp::startup() {
 	gameModels.push_back(new FBXGameObject("./models/pyro/pyro.fbx","Landscape/Shaders/fbxAnimatedShader",true));
 	//Give this certain object a scale
 	gameModels[0]->Scale(glm::vec3(0.001f, 0.001f, 0.001f));
-	gameModels.push_back(new FBXGameObject("./models/soulspear/soulspear.fbx", "Landscape/Shaders/fbxShader",false));
+	gameModels.push_back(new FBXGameObject("./models/soulspear/soulspear.fbx", "Landscape/Shaders/fbxShader", false));
 	//Create an emitter and push it into a vector
 	m_emitter.push_back(new ParticleEmitter("Landscape/Shaders/particleShader"));
 	m_emitter[0]->Init(100000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 1, 0, 1), glm::vec4(0, 0, 0, 1), glm::vec3(2, 2, 2));
@@ -74,13 +74,10 @@ bool LandscapeApp::startup() {
 	m_positions[1] = glm::vec3(-10, 0, -10);
 	m_rotations[0] = glm::quat(glm::vec3(0,-1, 0));
 	m_rotations[1] = glm::quat(glm::vec3(0, 1, 0));
-	//Setup the Fram Buffer and Quad for the window
+	//Setup the Frame Buffer and Quad for the window
 	postProcessor->SetupFrameBuffer(getWindowHeight(),getWindowWidth());
 	postProcessor->SetupFrameQuad  (getWindowHeight(),getWindowWidth());
 
-	cubeShader = new Shader("Landscape/Shaders/cube");
-	cubetex = new aie::Texture("Landscape/Textures/Tile.png");
-	CreateCube();
 	//---Create the heightmap---
 	heightMap = new HeightMap();
 	glEnable(GL_BLEND);
@@ -117,29 +114,6 @@ void LandscapeApp::update(float deltaTime) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	else
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	
-	//if (showBones)
-	//{
-	//	for (int i =0;i< skeleton->m_boneCount;i++)
-	//	{
-	//		//const glm::mat4 trans = skeleton->m_bones[i];
-	//		//const glm::mat4 scaleDown = { glm::vec4(0.001, 0, 0, 0),
-	//		//						glm::vec4(0, 0.001, 0, 0),
-	//		//						glm::vec4(0, 0, 0.001, 0),
-	//		//						glm::vec4(0, 0, 0, 1) };
-	//		//const glm::mat4 finalTrans = trans * scaleDown;
-	//		//
-	//		//
-	//		//
-	//		//Gizmos::addSphere(glm::vec3(skeleton->m_bones[i][3][0], skeleton->m_bones[i][3][1],skeleton->m_bones[i][3][2]),2,6,6,glm::vec4(1,0,0,1), &finalTrans);
-	//		
-	//	}
-	//}
-	//else
-	//{
-	//	
-	//}
-
 
 	ImGui::Begin("Lighting Editor");
 	ImGui::SliderFloat("Ambient Strength", &lightSources[0]->ambientIntensity, 0, 1);
@@ -154,7 +128,9 @@ void LandscapeApp::update(float deltaTime) {
 
 	//Draw the Object Creator UI
 	ObjectCreator->DrawUI();
-	ObjectCreator->DrawEditUI();
+	for (auto& member : m_emitter){
+		member->DrawUI();
+	}
 
 	ImGui::Begin("Debugger");
 	std::string frameRatestr = "Average Framerate " + std::to_string(1.0f / deltaTime);
@@ -180,7 +156,6 @@ void LandscapeApp::update(float deltaTime) {
 		element->DrawUI(deltaTime);
 	}
 	for (auto& element : ObjectCreator->gameObjects){
-		element->Draw();
 		element->Update(deltaTime);
 	}
 	//Call update and Draw for the emitters,models and the object creator
@@ -239,7 +214,6 @@ void LandscapeApp::draw() {
 	glm::mat4 projectionView = m_projectionMatrix * m_camera->GetView();
 	//Draw the heightmap
 	heightMap->DrawHeightMap(projectionView, lightSources, m_camera);
-
 	for (auto& member : gameModels)
 	{
 		member->Draw(projectionView,lightSources,m_camera);
@@ -248,113 +222,17 @@ void LandscapeApp::draw() {
 	{
 		member->Draw(projectionView);
 	}
+	for (auto& element : ObjectCreator->gameObjects) {
+		//element->Draw(projectionView);
+	}
 	//Draw the game models and emitter
 
-	// Ask openGL to use our shader program
-	glUseProgram(cubeShader->m_program);
-
-	glUniformMatrix4fv(glGetUniformLocation(cubeShader->m_program, "projectionView"), 1, false, glm::value_ptr(projectionView));
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, cubetex->getHandle());
-	glUniform1i(glGetUniformLocation(cubeShader->m_program, "texture"), 0);
-
-	// Bind VAO
-	glBindVertexArray(cubeData.m_vao);
-
-	// DRAW STUFF
-	glDrawElements(GL_TRIANGLES, cubeData.m_IndicesCount, GL_UNSIGNED_BYTE, 0);
-
-	// unbind the VAO, cleaning up after ourselves
-	glBindVertexArray(0);
-
-	// Deactivate the shader
-	glUseProgram(0);
-
+	ObjectCreator->DrawAll(projectionView);
 
 	//Draw the Post Processor
 	postProcessor->DrawPostProcess(postProcessor->m_enablePostProcess, getWindowHeight(), getWindowWidth());
 }
 
-void LandscapeApp::CreateCube()
-{
-	Vertex verts[] = {
-
-		// POSITION						COLOR
-		// FRONT FACE				  - RED
-		{glm::vec4(-0.5f,-0.5f, 0.5f, 1.0f),glm::vec2(0.0f, 0.0f)},	// 0
-		{glm::vec4(0.5f,-0.5f, 0.5f, 1.0f), glm::vec2(0.0f, 1.0f)},	// 1
-		{glm::vec4(0.5f, 0.5f, 0.5f, 1.0f), glm::vec2(1.0f, 1.0f)},	// 2
-		{glm::vec4(-0.5f, 0.5f, 0.5f, 1.0f),glm::vec2(1.0f, 0.0f)},
-		
-		{glm::vec4(-.5f, -.5f, -.5f, 1),    glm::vec2(1,0)},
-		{glm::vec4(-.5f, .5f, -.5f, 1),     glm::vec2(1,1)},
-		{glm::vec4(.5f, .5f, -.5f, 1),      glm::vec2(0,1)},// 3
-		{glm::vec4(.5f, -.5f, -.5f, 1),     glm::vec2(0,0)},// 3
-
-//{glm::vec4(-0.5f,-0.5f, 0.5f, 1.0f),glm::vec2(0.0f, 0.0f)},	// 0
-//{ glm::vec4(0.5f,-0.5f, 0.5f, 1.0f), glm::vec2(0.0f, 1.0f) },	// 1
-//{ glm::vec4(0.5f, 0.5f, 0.5f, 1.0f), glm::vec2(1.0f, 1.0f) },	// 2
-//{ glm::vec4(-0.5f, 0.5f, 0.5f, 1.0f),glm::vec2(1.0f, 0.0f) },
-//
-//{ glm::vec4(-.5f, -.5f, -.5f, 1),    glm::vec2(1,0) },
-//{ glm::vec4(-.5f, .5f, -.5f, 1),     glm::vec2(1,1) },
-//{ glm::vec4(.5f, .5f, -.5f, 1),      glm::vec2(0,1) },// 3
-//{ glm::vec4(.5f, -.5f, -.5f, 1),     glm::vec2(0,0) },// 3
-//
-//{glm::vec4(-0.5f,-0.5f, 0.5f, 1.0f),glm::vec2(0.0f, 0.0f)},	// 0
-//{ glm::vec4(0.5f,-0.5f, 0.5f, 1.0f), glm::vec2(0.0f, 1.0f) },	// 1
-//{ glm::vec4(0.5f, 0.5f, 0.5f, 1.0f), glm::vec2(1.0f, 1.0f) },	// 2
-//{ glm::vec4(-0.5f, 0.5f, 0.5f, 1.0f),glm::vec2(1.0f, 0.0f) },
-//
-//{ glm::vec4(-.5f, -.5f, -.5f, 1),    glm::vec2(1,0) },
-//{ glm::vec4(-.5f, .5f, -.5f, 1),     glm::vec2(1,1) },
-//{ glm::vec4(.5f, .5f, -.5f, 1),      glm::vec2(0,1) },// 3
-//{ glm::vec4(.5f, -.5f, -.5f, 1),     glm::vec2(0,0) }// 3
-								  // 3
-	};
-	
-	unsigned char indices[] = {
-		0,2,1,  0,3,2,
-		4,3,0,  4,7,3,
-		4,1,5,  4,0,1,
-		3,6,2,  3,7,6,
-		1,6,5,  1,2,6,
-		7,5,6,  7,4,5
-	};
-	
-	cubeData.m_IndicesCount = sizeof(indices) / sizeof(unsigned char);
-	
-	// Generate the VAO and Bind bind it.
-	// Our VBO (vertex buffer object) and IBO (Index Buffer Object) will be "grouped" with this VAO
-	// other settings will also be grouped with the VAO. this is used so we can reduce draw calls in the render method.
-	glGenVertexArrays(1, &cubeData.m_vao);
-	glBindVertexArray(cubeData.m_vao);
-	
-	// Create our VBO and IBO.
-	// Then tell Opengl what type of buffer they are used for
-	// VBO a buffer in graphics memory to contains our vertices
-	// IBO a buffer in graphics memory to contain our indices.
-	// Then Fill the buffers with our generated data.
-	// This is taking our verts and indices from ram, and sending them to the graphics card
-	glGenBuffers(1, &cubeData.m_vbo);
-	glGenBuffers(1, &cubeData.m_ibo);
-	
-	glBindBuffer(GL_ARRAY_BUFFER, cubeData.m_vbo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cubeData.m_ibo);
-	
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-	
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(float) * 4));
-	
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-}
 
 /*void LandscapeApp::DestroyCube()
 {

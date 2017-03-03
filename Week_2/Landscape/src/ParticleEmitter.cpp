@@ -1,6 +1,7 @@
 #include "ParticleEmitter.h"
 #include <imgui.h>
 #include <glm/ext.hpp>
+#include <imgui.h>
 void ParticleEmitter::Init(unsigned int a_maxParticles,
 						   unsigned int a_emitRate,
 						   float a_lifetimeMin, float a_lifetimeMax,
@@ -175,4 +176,24 @@ void ParticleEmitter::Update(float a_deltaTime, const glm::mat4 & a_cameraTransf
 			++quad;
 		}
 	}
+}
+
+void ParticleEmitter::DrawUI()
+{
+	ImGui::Begin("Particles");
+	ImGui::SliderInt("Max Particles", (int*)&m_maxParticles,0,9999);
+	ImGui::SliderInt("Emit Rate", (int*)&m_emitRate,0,9999);
+	ImGui::SliderFloat("Lifetime Min", &m_lifespanMin,0,5);
+	ImGui::SliderFloat("Lifetime Max", &m_lifespanMax,0,5);
+	ImGui::SliderFloat("Velocity Min", &m_velocityMin,0,5);
+	ImGui::SliderFloat("Velocity Max", &m_velocityMax,0,5);
+	ImGui::SliderFloat("Start Size", &m_startSize,0,5);
+	ImGui::SliderFloat("End Size", &m_endSize,0,5);
+	ImGui::ColorEdit4("Start Colour", &m_startColour[0]);
+	ImGui::ColorEdit4("End Colour", &m_endColour[0]);
+	ImGui::SliderFloat3("Position", &m_position[0],-10,10);
+	if(ImGui::Button("Reset Particles")) {
+		Init(100000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 1, 0, 1), glm::vec4(0, 0, 0, 1), glm::vec3(2, 2, 2));	
+	}
+	ImGui::End();
 }

@@ -29,6 +29,7 @@ public:
 	void Emit();
 	void Draw(glm::mat4 projectionView);
 	void Update(float a_deltaTime,const glm::mat4& a_cameraTransform, glm::vec3 camPos);
+	void DrawUI();
 protected:
 	struct Particle {
 		glm::vec3 position;
