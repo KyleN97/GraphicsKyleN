@@ -61,6 +61,7 @@ void ParticleEmitter::Init(unsigned int a_maxParticles,
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 			delete[] indexData;
+			//Setup an emmitter with default particles values and generate and bind all vertex and buffer data accordingly
 }
 
 void ParticleEmitter::Emit()
@@ -87,16 +88,15 @@ void ParticleEmitter::Emit()
 	particle.velocity.z = (rand() / (float)RAND_MAX) * 2 - 1;
 	particle.velocity = glm::normalize(particle.velocity) *
 		velocity;
-
+	//Emit the particles with values stated in the Init or filename Constructor
 }
 
 void ParticleEmitter::Draw(glm::mat4 projectionView)
 {
 	m_shader->Bind();
-	int loc = glGetUniformLocation(m_shader->m_program,
-		"projectionView");
-	glUniformMatrix4fv(loc, 1, GL_FALSE,
-		glm::value_ptr(projectionView));
+	//Bind the Shader
+	int loc = glGetUniformLocation(m_shader->m_program,"projectionView");
+	glUniformMatrix4fv(loc, 1, GL_FALSE,glm::value_ptr(projectionView));//Pass through the projection view to the shader
 	// sync the particle vertex buffer
 	// based on how many alive particles there are
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
@@ -160,7 +160,7 @@ void ParticleEmitter::Update(float a_deltaTime, const glm::mat4 & a_cameraTransf
 								glm::vec4(yAxis, 0),
 								glm::vec4(zAxis, 0),
 								glm::vec4(0, 0, 0, 1));
-
+			//billboard to always face the camera
 			m_vertexData[quad * 4 + 0].position = billboard *
 				m_vertexData[quad * 4 + 0].position +
 				glm::vec4(particle->position, 0);
@@ -196,4 +196,5 @@ void ParticleEmitter::DrawUI()
 		Init(100000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 1, 0, 1), glm::vec4(0, 0, 0, 1), glm::vec3(2, 2, 2));	
 	}
 	ImGui::End();
+	//Allow editinf of particl values and update in realtime.
 }

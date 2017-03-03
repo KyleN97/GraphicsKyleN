@@ -34,7 +34,7 @@ private:
 		NUM_ITEMS
 	};//Textures used for the heightmap
 	TexturePositions m_texPositions;
-
+	const char * m_textureNames[NUM_ITEMS] = {"grass","sand","snow","rock","splat","water"};
 	unsigned int m_Vao;
 	unsigned int m_Vbo;
 	unsigned int m_Ibo;

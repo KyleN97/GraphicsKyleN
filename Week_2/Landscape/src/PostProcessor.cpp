@@ -5,6 +5,7 @@
 PostProcessor::PostProcessor()
 {
 	m_postProcessorShader = new Shader("Landscape/Shaders/frameBufferShader");
+	//Setup the post processor shader
 }
 
 PostProcessor::~PostProcessor()
@@ -17,7 +18,7 @@ void PostProcessor::SetupFrameBuffer(unsigned int windowHeight, unsigned int win
 	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 	glGenTextures(1, &m_fboTexture);
 	glBindTexture(GL_TEXTURE_2D, m_fboTexture);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 1280, 720);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, windowHeight, windowWidth);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_fboTexture, 0);
@@ -27,6 +28,7 @@ void PostProcessor::SetupFrameBuffer(unsigned int windowHeight, unsigned int win
 	GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0 };
 	glDrawBuffers(1, drawBuffers);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//Generate all buffers ,setup textrues and draw and bind all of those buffers + textures
 }
 
 void PostProcessor::SetupFrameQuad(unsigned int windowHeight, unsigned int windowWidth)
@@ -50,6 +52,7 @@ void PostProcessor::SetupFrameQuad(unsigned int windowHeight, unsigned int windo
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 6, ((char*)0) + 16);
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//Generate the vertex array objects and setup all the pointers + attrib arrays
 }
 
 void PostProcessor::InitDrawPostProcess(bool isOn, unsigned int windowHeight, unsigned int windowWidth)
@@ -66,7 +69,7 @@ void PostProcessor::InitDrawPostProcess(bool isOn, unsigned int windowHeight, un
 
 void PostProcessor::DrawPostProcess(bool isOn, unsigned int windowHeight, unsigned int windowWidth)
 {
-	if (isOn)
+	if (isOn)//If we are Post Processing
 	{
 		// bind the back-buffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -82,9 +85,11 @@ void PostProcessor::DrawPostProcess(bool isOn, unsigned int windowHeight, unsign
 		glUniform1i(glGetUniformLocation(m_postProcessorShader->m_program, "distort"), m_enableDistortion);
 		glUniform1i(glGetUniformLocation(m_postProcessorShader->m_program, "blur"), m_enableBlur);
 		glUniform1i(glGetUniformLocation(m_postProcessorShader->m_program, "greyScale"), m_enableGrey);
+		//Pass in the Post Process texture and values to determine what Post Processing mode we are in
 		glUniform1i(loc2, 0);
 		glBindVertexArray(m_vao);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+		//Draw the Frame
 		glUseProgram(0);
 	}
 }
@@ -108,4 +113,5 @@ void PostProcessor::DrawPostProcessUI()
 		}
 		ImGui::End();
 	}
+	//Draw the Post Process Ui to change modes and enable/disable
 }

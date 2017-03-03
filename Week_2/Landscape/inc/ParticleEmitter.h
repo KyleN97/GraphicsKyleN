@@ -12,7 +12,7 @@ public:
 		m_vao(0), m_vbo(0), m_ibo(0),
 		m_vertexData(nullptr) {
 		m_shader = new Shader(fileName);
-	}
+	}//Create an emmitter from filename
 	~ParticleEmitter() {
 		delete[] m_particles;
 		delete[] m_vertexData;
@@ -25,11 +25,11 @@ public:
 		float a_lifetimeMin, float a_lifetimeMax,
 		float a_velocityMin, float a_velocityMax,
 		float a_startSize, float a_endSize,
-		const glm::vec4& a_startColour, const glm::vec4& a_endColour,glm::vec3 pos);
-	void Emit();
-	void Draw(glm::mat4 projectionView);
-	void Update(float a_deltaTime,const glm::mat4& a_cameraTransform, glm::vec3 camPos);
-	void DrawUI();
+		const glm::vec4& a_startColour, const glm::vec4& a_endColour,glm::vec3 pos);//init the emmitter with particle values
+	void Emit();//emit the particles
+	void Draw(glm::mat4 projectionView);//draw particles
+	void Update(float a_deltaTime,const glm::mat4& a_cameraTransform, glm::vec3 camPos);//update the particles
+	void DrawUI();//draw the edit ui
 protected:
 	struct Particle {
 		glm::vec3 position;

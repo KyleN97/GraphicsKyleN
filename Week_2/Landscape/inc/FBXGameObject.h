@@ -19,31 +19,30 @@ public:
 	FBXGameObject(const char* fileName,const char* shaderName, bool hasAnimations);
 	~FBXGameObject();
 
-	void CreateFBXOpenGLBuffers(FBXFile *fbx);
+	void CreateFBXOpenGLBuffers(FBXFile *fbx);//Create the buffers for the model
 	
-	void CreateFBXAnimatedOpenGLBuffers(FBXFile *fbx);
+	void CreateFBXAnimatedOpenGLBuffers(FBXFile *fbx);//Create the buffer objects for the animated mdodel
 
-	void CleanupFBXOpenGLBuffers(FBXFile *file);
+	void CleanupFBXOpenGLBuffers(FBXFile *file);//Cleanup the buffer objects for the model
 
-	void PlayAnimationTo(int a, int b);
+	void PlayAnimationTo(int a, int b);//Play the models animations from a key to a key
 
-	void Update(float d_time,float anim_Timer);
+	void Update(float d_time,float anim_Timer);//Update the model
 
-	void Draw(glm::mat4 projectionView,std::vector<Light*>lightSources,Camera* m_camera);
+	void Draw(glm::mat4 projectionView,std::vector<Light*>lightSources,Camera* m_camera);//Draw the model
 
-	void DrawUI(float d_time);
+	void DrawUI(float d_time);//Draw the UI
 
-	void Translate(glm::vec3 transAmount) {
+	void Translate(glm::vec3 transAmount) {//Translate the model
 		modelTransforms.m_transform = modelTransforms.m_transform * glm::translate(transAmount);
 	}
-	void Scale(glm::vec3 scaleAmount) {
+	void Scale(glm::vec3 scaleAmount) {//Scale the model
 		modelTransforms.m_transform = modelTransforms.m_transform  * glm::scale(scaleAmount);
-		//modelTransforms.m_scale = scaleAmount.x;
 	}
-	void Rotate(float angle,glm::vec3 rotAmount) {
+	void Rotate(float angle,glm::vec3 rotAmount) {//Rotate the model
 		modelTransforms.m_transform = modelTransforms.m_transform *  glm::rotate(angle, rotAmount);
 	}
-	void SlerpTo(glm::vec3 a, glm::quat b) {
+	void SlerpTo(glm::vec3 a, glm::quat b) {//Slerp the model
 		modelTransforms.m_transform = glm::translate(a) * glm::toMat4(b);
 	}
 private:

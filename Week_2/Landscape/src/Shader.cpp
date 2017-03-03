@@ -7,10 +7,10 @@ Shader::Shader(const std::string & fileName)
  	m_program = glCreateProgram();
 	m_shaders[0] = CreateShader(LoadShader(fileName + ".vs"), GL_VERTEX_SHADER);
 	m_shaders[1] = CreateShader(LoadShader(fileName + ".fs"), GL_FRAGMENT_SHADER);
-
+	//Create a vertex and frag shader
 	for (unsigned int i = 0; i < NUM_SHADER; i++)
 	{
-		glAttachShader(m_program, m_shaders[i]);
+		glAttachShader(m_program, m_shaders[i]);//Attach to a program
 	}
 
 	glLinkProgram(m_program);
@@ -19,6 +19,7 @@ Shader::Shader(const std::string & fileName)
 	glValidateProgram(m_program);
 	CheckShaderError(m_program, GL_VALIDATE_STATUS, true, "Error: Program is invalid: ");
 
+	//Link + Validate whilst checking for errors
 }
 
 Shader::~Shader()
@@ -30,11 +31,12 @@ Shader::~Shader()
 	}
 
 	glDeleteProgram(m_program);
+	//detach and delete shader
 }
 
 void Shader::Bind()
 {
-	glUseProgram(m_program);
+	glUseProgram(m_program);//Sets up the shader for use 
 }
 
 
@@ -54,8 +56,8 @@ GLuint Shader::CreateShader(const std::string & text, GLenum shaderType)
 	glShaderSource(shader, 1, shaderSourceStrings, shaderSourceStringLengths);
 	glCompileShader(shader);
 
-
-	CheckShaderError(shader, GL_COMPILE_STATUS, false, "Error: Shader compilation failed");
+	//Create the shader and compile it
+	CheckShaderError(shader, GL_COMPILE_STATUS, false, "Error: Shader compilation failed");//Does the shader compile?
 	return shader;
 }
 
@@ -79,6 +81,7 @@ std::string Shader::LoadShader(const std::string& fileName)
 		std::cerr << "Unable to load shader: " << fileName << std::endl;
 	}
 	return output;
+	//Open the file and check wether it exists/ can use it
 }
 
 void Shader::CheckShaderError(GLuint shader, GLuint flag, bool isProgram, const std::string& errorMessage)

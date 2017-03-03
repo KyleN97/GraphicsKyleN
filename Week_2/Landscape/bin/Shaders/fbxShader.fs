@@ -9,8 +9,6 @@ uniform vec3 lightPosition;
 uniform vec3 lightColor; 
 uniform vec3 lightSpecColor; 
 uniform float specPower = 32.0f;
-
-
 uniform vec3 camPos; 
 void main() { 
 
@@ -24,4 +22,5 @@ void main() {
 		float specTerm = pow(max(0.0f, dot(R, E)), specPower); 
 		vec3 Specular = lightColor * specTerm; 
 		FragColor = texture2D(diffuseTexture, vuv) * vec4(Specular + ambient + diffColor,1); 
+
 };

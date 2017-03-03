@@ -167,7 +167,7 @@ void LandscapeApp::update(float deltaTime) {
 
 	gameModels[1]->SlerpTo(p, r);
 	//Slerping a game model between two points
-	const mat4 sphereMat = glm::translate(glm::vec3(vec3(glm::sin(time) * 3, 3, glm::cos(time) * 3)));//translate the sphere in an orbit 3 wide and 3 high
+	const mat4 sphereMat = glm::translate(glm::vec3(vec3(glm::cos(time * 0.5) * 30, glm::sin(time * 0.1) * 32.5, glm::sin(time * 0.5) * 30)));//translate the sphere in an orbit 3 wide and 3 high
 
 	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 12, vec4(1, 0, 0, 0.5f), &sphereMat);
 	//Adding a sphere into the scene and rotation in a circle which will be the lights postion

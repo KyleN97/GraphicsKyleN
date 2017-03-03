@@ -18,9 +18,6 @@ uniform vec3 camPos;
 uniform float blend = 50.0f;
 const float texSize = 10.0f;
 uniform float Time;		
-uniform float amplitude = 0.02;
-uniform float frequency =1 ;
-uniform float speed = 1;
 void main ()												
 {		
 	vec3 norm = normalize(fNormal.xyz);
@@ -38,8 +35,8 @@ void main ()
 		
 	vec4 texColor;
 	vec4 sp = texture2D(splat,fUv);
-	texColor = sp.x * texture2D(snow,fUv* texSize);
-	texColor += sp.y * texture2D(sand,fUv* texSize);
+	texColor = sp.x * texture2D(rock,fUv* texSize);
+	texColor += sp.y * texture2D(grass,fUv* texSize);
 	if(sp.z >= 0.5f){
 		texColor += mix(texture2D(water,fUv* texSize + Time / 24),texture2D(sand,fUv* texSize),(blend / 100)* -fPos.y);
 	}		

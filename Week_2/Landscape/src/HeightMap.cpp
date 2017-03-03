@@ -147,33 +147,54 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 	ImGui::SliderFloat("Water Frequency",&waterFrequency ,0, 10);
 	ImGui::SliderFloat("Water Amplitude",&waterAmplitude ,0, 10);
 	ImGui::SliderFloat("Water Speed",&waterSpeed ,0, 10);
-
 	ImGui::End();
+	//Draw a water editor ui
 #pragma region BindTextures
 	//setup texture in open gl - select the first texture as active, then bind it 
 	//also set it up as a uniform variable for shader
 	m_shader->Bind();
 	//bind the shader and use it
 	//setup grass texture
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_textures[grass]->getHandle());
 	glUniform1i(glGetUniformLocation(m_shader->m_program, "grass"), 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, m_textures[sand]->getHandle());
 	glUniform1i(glGetUniformLocation(m_shader->m_program, "sand"), 1);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, m_textures[snow]->getHandle());
 	glUniform1i(glGetUniformLocation(m_shader->m_program, "snow"), 2);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, m_textures[rock]->getHandle());
 	glUniform1i(glGetUniformLocation(m_shader->m_program, "rock"), 3);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, m_textures[splat]->getHandle());
 	glUniform1i(glGetUniformLocation(m_shader->m_program, "splat"), 4);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	glActiveTexture(GL_TEXTURE5);
 	glBindTexture(GL_TEXTURE_2D, m_textures[water]->getHandle());
@@ -183,6 +204,7 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
+	//Loading in all 
 	glUniformMatrix4fv(
 		glGetUniformLocation(m_shader->m_program, "projectionView"),
 		1,
@@ -199,8 +221,7 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 	glUniform1f(glGetUniformLocation(m_shader->m_program, "amplitude"), waterAmplitude);
 	glUniform1f(glGetUniformLocation(m_shader->m_program, "frequency"), waterFrequency);
 	glUniform1f(glGetUniformLocation(m_shader->m_program, "speed"), waterSpeed);
-	//glUniform1f(glGetUniformLocation(m_shader->m_program, "blend"), blend);
-//
+
 	// When we setup the geometry, we did a bunch of glEnableVertexAttribArray and glVertexAttribPointer method calls
 	// we also Bound the vertex array and index array via the glBindBuffer call.
 	// if we where not using VAO's we would have to do thoes method calls each frame here.

@@ -142,6 +142,7 @@ void FBXGameObject::CleanupFBXOpenGLBuffers(FBXFile * file)
 		glDeleteBuffers(1, &glData->ibo);
 		delete glData;
 	}
+	//delete all mesh dete and buffers/vertex objects
 }
 
 void FBXGameObject::PlayAnimationTo(int a, int b)
@@ -169,42 +170,45 @@ void FBXGameObject::Update(float d_time, float anim_Timer)
 
 void FBXGameObject::Draw(glm::mat4 projectionView, std::vector<Light*>lightSources, Camera* m_camera)
 {
-	if (isAnimated){
+	//if (isAnimated){
 		//------ANIMTED FBX-----
 		//bind the shader
-		m_shader->Bind();
-		// grab the skeleton and animation we want to use
-		m_skeleton->updateBones();
-
-		glUniformMatrix4fv(glGetUniformLocation(m_shader->m_program, "projectionViewWorldMatrix"),
-			1, GL_FALSE, glm::value_ptr(projectionView * modelTransforms.m_transform));
-		//pass in the proj matrix to the shader
-		for (unsigned int i = 0; i < m_fbxFile->getMeshCount(); ++i)
-		{
-
-			FBXMeshNode* mesh = m_fbxFile->getMeshByIndex(i);
-			GLMesh* glData = (GLMesh*)mesh->m_userData;
-			// get the texture from the model
-			unsigned int diffuseTexture = mesh->m_material->textureIDs[0];
-			int bones_location = glGetUniformLocation(m_shader->m_program, "bones");
-			// bid the texture and send it to our shader
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, diffuseTexture);
-			glUniform1i(glGetUniformLocation(m_shader->m_program, "diffuseTexture"), 0);
-			glUniformMatrix4fv(bones_location, m_skeleton->m_boneCount, GL_FALSE, (float*)m_skeleton->m_bones);
-			//pass in the diffuse texture and bones
-			// draw the mesh
-			glBindVertexArray(glData->vao);
-			glDrawElements(GL_TRIANGLES, mesh->m_indices.size(), GL_UNSIGNED_INT, 0);
-			glBindVertexArray(0);
-		}
-
-		glUseProgram(0);
-	}
-	else {//If not animated
+		//m_shader->Bind();
+		//// grab the skeleton and animation we want to use
+		//m_skeleton->updateBones();
+		//
+		//glUniformMatrix4fv(glGetUniformLocation(m_shader->m_program, "projectionViewWorldMatrix"),
+		//	1, GL_FALSE, glm::value_ptr(projectionView * modelTransforms.m_transform));
+		////pass in the proj matrix to the shader
+		//for (unsigned int i = 0; i < m_fbxFile->getMeshCount(); ++i)
+		//{
+		//
+		//	FBXMeshNode* mesh = m_fbxFile->getMeshByIndex(i);
+		//	GLMesh* glData = (GLMesh*)mesh->m_userData;
+		//	// get the texture from the model
+		//	unsigned int diffuseTexture = mesh->m_material->textureIDs[0];
+		//	int bones_location = glGetUniformLocation(m_shader->m_program, "bones");
+		//	// bid the texture and send it to our shader
+		//	glActiveTexture(GL_TEXTURE0);
+		//	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+		//	glUniform1i(glGetUniformLocation(m_shader->m_program, "diffuseTexture"), 0);
+		//	glUniformMatrix4fv(bones_location, m_skeleton->m_boneCount, GL_FALSE, (float*)m_skeleton->m_bones);
+		//	//pass in the diffuse texture and bones
+		//	// draw the mesh
+		//	glBindVertexArray(glData->vao);
+		//	glDrawElements(GL_TRIANGLES, mesh->m_indices.size(), GL_UNSIGNED_INT, 0);
+		//	glBindVertexArray(0);
+		//}
+		//
+		//glUseProgram(0);
+	//}
+	//else {//If not animated
 		//FBX - START
 		m_shader->Bind();
-
+		if (isAnimated)
+		{
+			m_skeleton->updateBones();
+		}
 		// send uniform variables, in this case the "projectionViewWorldMatrix"
 		unsigned int mvpLoc = glGetUniformLocation(m_shader->m_program, "projectionViewWorldMatrix");
 		glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(projectionView *
@@ -215,10 +219,23 @@ void FBXGameObject::Draw(glm::mat4 projectionView, std::vector<Light*>lightSourc
 			FBXMeshNode* mesh = m_fbxFile->getMeshByIndex(i);
 			GLMesh* glData = (GLMesh*)mesh->m_userData;
 			// get the texture from the model
-			unsigned int diffuseTexture = m_fbxFile->getTextureByIndex(mesh->m_material->DiffuseTexture);
+			if (isAnimated)
+			{
+				unsigned int diffuseTexture = mesh->m_material->textureIDs[0];
+				int bones_location = glGetUniformLocation(m_shader->m_program, "bones");
+				glUniformMatrix4fv(bones_location, m_skeleton->m_boneCount, GL_FALSE, (float*)m_skeleton->m_bones);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+			}
+			//	// bid the texture and send it to our shader
+			// get the texture from the model
+			else{
+				unsigned int diffuseTexture = m_fbxFile->getTextureByIndex(mesh->m_material->DiffuseTexture);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+			}
 			// bid the texture and send it to our shader
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+		
 			glUniform1i(glGetUniformLocation(m_shader->m_program, "diffuseTexture"), 0);
 			glUniform1f(glGetUniformLocation(m_shader->m_program, "lightAmbientStrength"),    lightSources[0]->getAmbientIntensity());
 			glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightSpecColor"), 1,	  &lightSources[0]->getSpecColor()[0]);
@@ -234,7 +251,6 @@ void FBXGameObject::Draw(glm::mat4 projectionView, std::vector<Light*>lightSourc
 			glBindVertexArray(0);
 		}
 		glUseProgram(0);
-	}
 }
 
 void FBXGameObject::DrawUI(float d_time)

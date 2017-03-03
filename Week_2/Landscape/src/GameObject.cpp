@@ -6,6 +6,7 @@
 GameObject::GameObject()
 {
 	gameObjects.push_back(new Object());
+	//Create an empty game object ready to use 
 }
 
 GameObject::~GameObject()
@@ -107,7 +108,7 @@ void GameObject::CreateCube(glm::vec3 scale)
 		20, 21, 22,
 		22, 23, 20
 	};
-
+	//Hard coding the verts and indices for a cube
 	objectData.push_back(new BufferData());//push back an empty object
 	objectData[amountOfObjects]->m_IndicesCount = sizeof(indices) / sizeof(unsigned char);//fill the indiceis
 
@@ -133,10 +134,10 @@ void GameObject::CreateCube(glm::vec3 scale)
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);//Position
 
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(float) * 4));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(float) * 4));//Tex coords
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -154,6 +155,7 @@ void GameObject::DrawCube(glm::mat4 projectionView)
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, objectTextures[i]->getHandle());
 		glUniform1i(glGetUniformLocation(objectShaders[i]->m_program, "texture"), 0);
+		//Pass in the projection view and texture to the shader
 
 		// Bind VAO
 		glBindVertexArray(objectData[i]->m_vao);
@@ -178,10 +180,11 @@ void GameObject::DrawAll(glm::mat4 projectionView)
 			DrawCube(projectionView);
 		}
 
-	}
+	}//Draw all gameobjects
 }
 
 void Object::Update(float d_time)
 {
-
+	/*This is to be used to have generalised update functions for all gameobjects
+		Such as rotating all objects every frame...*/
 }
