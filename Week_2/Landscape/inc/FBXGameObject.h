@@ -60,8 +60,8 @@ private:
 								 glm::vec4(0,0,0,1)};
 	};//Transforms data of the model
 	Transforms modelTransforms;//Accesbile transforms of the model
-	float fbxFrameCount;//amount of frames in animation
-	float fbxCurrentFrame = 0;//frame display counter
+	int fbxFrameCount;//amount of frames in animation
+	int fbxCurrentFrame = 0;//frame display counter
 	bool isAnimated = false;//is the fbx animated
 };
 

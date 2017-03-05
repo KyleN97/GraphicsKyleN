@@ -4,7 +4,7 @@
 #include <imgui.h>
 HeightMap::HeightMap()
 {
-	m_shader = new Shader("Landscape/Shaders/basicShader");
+	m_shader = new Shader("./Landscape/Shaders/basicShader");
 	for (size_t i = 0; i < NUM_ITEMS; i++)
 	{
 		m_textures.push_back(NULL);
@@ -12,25 +12,25 @@ HeightMap::HeightMap()
 
 	//---load heightmap---
 	m_textures[heightmap] = new aie::Texture();
-	m_textures[heightmap]->load("Landscape/Textures/heightmap.bmp");
+	m_textures[heightmap]->load("./Landscape/Textures/heightmap.bmp");
 	//---load grass---
 	m_textures[grass] = new aie::Texture();
-	m_textures[grass]->load("Landscape/Textures/grass.png");
+	m_textures[grass]->load("./Landscape/Textures/grass.png");
 	//---load rock---
 	m_textures[rock] = new aie::Texture();
-	m_textures[rock]->load("Landscape/Textures/rock.png");
+	m_textures[rock]->load("./Landscape/Textures/rock.png");
 	//---load sand---
 	m_textures[sand] = new aie::Texture();
-	m_textures[sand]->load("Landscape/Textures/sand.png");
+	m_textures[sand]->load("./Landscape/Textures/sand.png");
 	//---load snow---
 	m_textures[snow] = new aie::Texture();
-	m_textures[snow]->load("Landscape/Textures/snow.png");
+	m_textures[snow]->load("./Landscape/Textures/snow.png");
 	//---load splat--
 	m_textures[splat] = new aie::Texture();
-	m_textures[splat]->load("Landscape/Textures/splat.jpg");
+	m_textures[splat]->load("./Landscape/Textures/splat.jpg");
 
 	m_textures[water] = new aie::Texture();
-	m_textures[water]->load("Landscape/Textures/water.png");
+	m_textures[water]->load("./Landscape/Textures/water.png");
 	CreateHeightMap();
 }
 
@@ -53,11 +53,11 @@ void HeightMap::CreateHeightMap()
 		for (int j = 0; j < m_LandWidth; j++)
 		{
 
-			int sampleX = (float)j / m_LandWidth * m_textures[heightmap]->getWidth();
-			int sampleZ = (float)i / m_LandDepth * m_textures[heightmap]->getHeight();
+			float sampleX = (float)j / m_LandWidth * m_textures[heightmap]->getWidth();
+			float sampleZ = (float)i / m_LandDepth * m_textures[heightmap]->getHeight();
 
 
-			int k = sampleZ * m_textures[heightmap]->getWidth() + sampleX;
+			int k = (int)sampleZ * m_textures[heightmap]->getWidth() + (int)sampleX;
 
 			//position of vertex
 			float xPos = (j * m_vertSeperation) - (m_LandWidth * m_vertSeperation * 0.5f);

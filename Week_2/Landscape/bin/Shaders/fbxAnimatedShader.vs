@@ -16,17 +16,18 @@ const int MAX_BONES = 128;
 uniform mat4 bones[MAX_BONES];
 void main()
 {
-frag_position = position.xyz;
-frag_normal = normal.xyz;
-frag_tangent = tangent.xyz;
-frag_bitangent = cross(normal.xyz, tangent.xyz);
-frag_texcoord = tex_coord;
-// cast the indices to integer's so they can index an array
-ivec4 index = ivec4(indices);
-// sample bones and blend up to 4
-vec4 P = bones[ index.x ] * position * weights.x;
-P += bones[ index.y ] * position * weights.y;
-P += bones[ index.z ] * position * weights.z;
-P += bones[ index.w ] * position * weights.w;
-gl_Position = projectionViewWorldMatrix * P;
+    mat4 inversedMatrix = transpose(inverse(projectionViewWorldMatrix));
+    frag_position = position.xyz;
+    frag_normal = normal.xyz * vec3(projectionViewWorldMatrix[0][0],projectionViewWorldMatrix[0][1],projectionViewWorldMatrix[0][2]);
+    frag_tangent = tangent.xyz;
+    frag_bitangent = cross(normal.xyz, tangent.xyz);
+    frag_texcoord = tex_coord;
+    // cast the indices to integer's so they can index an array
+    ivec4 index = ivec4(indices);
+    // sample bones and blend up to 4
+    vec4 P = bones[ index.x ] * position * weights.x;
+    P += bones[ index.y ] * position * weights.y;
+    P += bones[ index.z ] * position * weights.z;
+    P += bones[ index.w ] * position * weights.w;
+    gl_Position = projectionViewWorldMatrix * P;
 }

@@ -45,7 +45,7 @@ private:
 	int m_LandWidth = 512, m_LandDepth = 512;
 	const float m_vertSeperation = 0.1f;
 	const float m_maxHeight = 2;
-	float waterAmplitude = 1.0f;
+	float waterAmplitude = 0.2f;
 	float waterFrequency = 1.0f;
 	float waterSpeed = 1.0f;
 	struct Vertex

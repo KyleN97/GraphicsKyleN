@@ -59,7 +59,7 @@ bool LandscapeApp::startup() {
 	gameModels[0]->Scale(glm::vec3(0.001f, 0.001f, 0.001f));
 	gameModels.push_back(new FBXGameObject("./models/soulspear/soulspear.fbx", "Landscape/Shaders/fbxShader", false));
 	//Create an emitter and push it into a vector
-	m_emitter.push_back(new ParticleEmitter("Landscape/Shaders/particleShader"));
+	m_emitter.push_back(new ParticleEmitter("./Landscape/Shaders/particleShader"));
 	m_emitter[0]->Init(100000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 1, 0, 1), glm::vec4(0, 0, 0, 1), glm::vec3(10, 2, 2));
 	//Create an Object Creator
 	ObjectCreator = new GameObject();
@@ -176,7 +176,7 @@ void LandscapeApp::update(float deltaTime) {
 	//Setting the main lights position and storing the camera pos
 	
 	//Draw a Grid
-	DrawGrid();
+	//DrawGrid();
 	
 	// quit if we press escape
 	aie::Input* input = aie::Input::getInstance();
@@ -218,14 +218,11 @@ void LandscapeApp::draw() {
 	for (auto& member : gameModels)
 	{
 		member->Draw(projectionView,lightSources,m_camera);
-	}
+	}//Draw all gamemodels
 	for (auto& member : m_emitter)
 	{
 		member->Draw(projectionView);
-	}
-	for (auto& element : ObjectCreator->gameObjects) {
-		//element->Draw(projectionView);
-	}
+	}//Draw all emmitters
 	//Draw the game models and emitter
 
 	ObjectCreator->DrawAll(projectionView);
@@ -233,12 +230,3 @@ void LandscapeApp::draw() {
 	//Draw the Post Processor
 	postProcessor->DrawPostProcess(postProcessor->m_enablePostProcess, getWindowHeight(), getWindowWidth());
 }
-
-
-/*void LandscapeApp::DestroyCube()
-{
-// When We're Done, destroy the geometry
-glDeleteBuffers(1, &m_Ibo);
-glDeleteBuffers(1, &m_Vbo);
-glDeleteVertexArrays(1, &m_Vao);
-}*/

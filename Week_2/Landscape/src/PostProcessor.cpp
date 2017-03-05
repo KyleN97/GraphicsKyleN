@@ -4,7 +4,7 @@
 #include "imgui.h"
 PostProcessor::PostProcessor()
 {
-	m_postProcessorShader = new Shader("Landscape/Shaders/frameBufferShader");
+	m_postProcessorShader = new Shader("./Landscape/Shaders/frameBufferShader");
 	//Setup the post processor shader
 }
 
