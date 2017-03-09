@@ -16,9 +16,11 @@ const int MAX_BONES = 128;
 uniform mat4 bones[MAX_BONES];
 void main()
 {
-    mat4 inversedMatrix = transpose(inverse(projectionViewWorldMatrix));
-    frag_position = position.xyz;
-    frag_normal = normal.xyz * vec3(projectionViewWorldMatrix[0][0],projectionViewWorldMatrix[0][1],projectionViewWorldMatrix[0][2]);
+    //mat4 inversedMatrix = transpose(inverse(projectionViewWorldMatrix));
+    vec4 othernorm = projectionViewWorldMatrix * normal;
+    vec4 otherpos = projectionViewWorldMatrix * position;
+    frag_position = otherpos.xyz;
+    frag_normal = othernorm.xyz;
     frag_tangent = tangent.xyz;
     frag_bitangent = cross(normal.xyz, tangent.xyz);
     frag_texcoord = tex_coord;

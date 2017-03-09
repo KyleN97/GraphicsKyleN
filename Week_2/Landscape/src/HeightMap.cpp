@@ -154,8 +154,8 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 	//also set it up as a uniform variable for shader
 	m_shader->Bind();
 	//bind the shader and use it
-	//setup grass texture
 
+	//setup grass texture
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_textures[grass]->getHandle());
 	glUniform1i(glGetUniformLocation(m_shader->m_program, "grass"), 0);
@@ -163,6 +163,7 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	//setup sand texture
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, m_textures[sand]->getHandle());
@@ -171,6 +172,7 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	//setup snow texture
 
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, m_textures[snow]->getHandle());
@@ -179,6 +181,7 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	//setup rock texture
 
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, m_textures[rock]->getHandle());
@@ -187,6 +190,7 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	//setup splat texture
 
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, m_textures[splat]->getHandle());
@@ -195,6 +199,7 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	//setup water texture
 
 	glActiveTexture(GL_TEXTURE5);
 	glBindTexture(GL_TEXTURE_2D, m_textures[water]->getHandle());
@@ -211,17 +216,23 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 		false,
 		glm::value_ptr(projectionView));
 	// Step 3: Bind the VAO
-	glUniform1f(glGetUniformLocation(m_shader->m_program, "lightAmbientStrength"), lightSources[0]->getAmbientIntensity());
-	glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightSpecColor"), 1, &lightSources[0]->getSpecColor()[0]);
-	glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightPosition"), 1, &lightSources[0]->getPosition()[0]);
-	glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightColor"), 1, &lightSources[0]->getColour()[0]);
-	glUniform1f(glGetUniformLocation(m_shader->m_program, "specPower"), lightSources[0]->getSpecIntensity());
-	glUniform3fv(glGetUniformLocation(m_shader->m_program, "camPos"), 1, &camera->GetPos()[0]);
-	glUniform1f(glGetUniformLocation(m_shader->m_program, "Time"), timePassed);
-	glUniform1f(glGetUniformLocation(m_shader->m_program, "amplitude"), waterAmplitude);
-	glUniform1f(glGetUniformLocation(m_shader->m_program, "frequency"), waterFrequency);
-	glUniform1f(glGetUniformLocation(m_shader->m_program, "speed"), waterSpeed);
+	for (int i = 0; i < /*lightSources.size()*/1;++i) {
 
+		glUniform1f(glGetUniformLocation(m_shader->m_program,  "lightAmbientStrength"),lightSources[i]->getAmbientIntensity());
+		glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightSpecColor"), i, &lightSources[i]->getSpecColor()[0]);
+		glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightPosition"), i, &lightSources[i]->getPosition()[0]);
+		glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightColor"), i, &lightSources[i]->getColour()[0]);
+		glUniform1f(glGetUniformLocation(m_shader->m_program,  "attenuation"), lightSources[i]->getAttenuation());
+		glUniform1f(glGetUniformLocation(m_shader->m_program,  "coneangle"),lightSources[i]->coneAngle);
+		glUniform3fv(glGetUniformLocation(m_shader->m_program, "coneDirection"), i,&lightSources[i]->getConeDirection()[0]);
+		glUniform1f(glGetUniformLocation (m_shader->m_program, "specPower"),lightSources[i]->SpecIntensity);
+		glUniform3fv(glGetUniformLocation(m_shader->m_program, "camPos"), 1, &camera->GetPos()[0]);
+		//water below
+		glUniform1f(glGetUniformLocation(m_shader->m_program,  "Time"), timePassed);
+		glUniform1f(glGetUniformLocation(m_shader->m_program,  "amplitude"), waterAmplitude);
+		glUniform1f(glGetUniformLocation(m_shader->m_program,  "frequency"), waterFrequency);
+		glUniform1f(glGetUniformLocation(m_shader->m_program,  "speed"), waterSpeed);
+	}
 	// When we setup the geometry, we did a bunch of glEnableVertexAttribArray and glVertexAttribPointer method calls
 	// we also Bound the vertex array and index array via the glBindBuffer call.
 	// if we where not using VAO's we would have to do thoes method calls each frame here.

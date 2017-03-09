@@ -4,7 +4,7 @@
 class Light
 {
 public:
-	Light(glm::vec3 pos, glm::vec3 col) {
+	Light(glm::vec4 pos, glm::vec3 col) {
 		this->position = pos;
 		this->colour = col;
 		this->specColor = col;
@@ -18,10 +18,10 @@ public:
 	~Light() {
 
 	}
-	glm::vec3 getPosition() {
-		return position;
+	glm::vec4 getPosition() {
+		return this->position;
 	}
-	void SetPosition(glm::vec3 pos) {
+	void SetPosition(glm::vec4 pos) {
 		this->position = pos;
 	}
 	float getSpecIntensity()
@@ -33,21 +33,31 @@ public:
 		return this->ambientIntensity;
 	}
 	glm::vec3 getColour() {
-		return colour;
+		return this->colour;
 	}
-	//glm::vec3 getAttenuation() {
-	//	return attenuation;
-	//}
+
 	glm::vec3 getSpecColor() {
-		return specColor;
+		return this->specColor;
+	}
+	float getAttenuation() {
+		return this->attenuation;
+	}
+	float getConeAngle() {
+		return this->coneAngle;
+	}
+	glm::vec3 getConeDirection() {
+		return this->coneDirection;
 	}
 	glm::vec3 colour;
 	glm::vec3 specColor;
+	glm::vec4 position;
+	float attenuation;
+	float coneAngle;
+	glm::vec3 coneDirection;
 	float SpecIntensity = 32.0f;
 	float ambientIntensity = 0.05f;
 private:
-	glm::vec3 position;
-	//glm::vec3 attenuation = glm::vec3(1,0,0);
+
 
 };
 

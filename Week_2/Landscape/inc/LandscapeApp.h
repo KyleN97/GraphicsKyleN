@@ -44,12 +44,12 @@ protected:
 	glm::quat m_rotations[2];
 
 	glm::mat4	m_viewMatrix;
-	glm::mat4	m_projectionMatrix;
 
 	bool m_isWireframe = false;
 
 
 	glm::vec3 m_cameraPosition;
+
 
 
 };

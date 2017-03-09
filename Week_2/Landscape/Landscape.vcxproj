@@ -72,7 +72,7 @@
       <AdditionalLibraryDirectories>$(SolutionDir)dependencies\FBXLoader\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy /b /v /e /y "$(ProjectDir)bin" "$(SolutionDir)bin\Landscape\"</Command>
+      <Command>xcopy /d /b /v /e /y "$(ProjectDir)bin" "$(SolutionDir)bin\Landscape\"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

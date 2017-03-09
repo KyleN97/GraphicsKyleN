@@ -34,7 +34,7 @@ public:
 	void DrawUI(float d_time);//Draw the UI
 
 	void Translate(glm::vec3 transAmount) {//Translate the model
-		modelTransforms.m_transform = modelTransforms.m_transform * glm::translate(transAmount);
+		modelTransforms.m_transform = glm::translate(transAmount) * modelTransforms.m_transform;
 	}
 	void Scale(glm::vec3 scaleAmount) {//Scale the model
 		modelTransforms.m_transform = modelTransforms.m_transform  * glm::scale(scaleAmount);

@@ -48,15 +48,25 @@ LandscapeApp::~LandscapeApp()
 bool LandscapeApp::startup() {
 
 	//---Setup camera starting position and where it's looking---
-	m_camera = new Camera();
+	m_camera = new Camera(this);
 	m_camera->SetPosition(glm::vec3(5.0f, 5.0f, 5.0f));
 	m_camera->LookAt(glm::vec3(0.0f, 0.0f, 0.0f));
 	//Create a light at a certain position and colour -  push it into a vector of lights
-	lightSources.push_back(new Light(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(1, 1, 1)));
+	//lightSources.push_back(new Light(glm::vec4(0.0f, 5.0f, 0.0f,1.0f), glm::vec3(1, 1, 1)));
+	//lightSources[0]->ambientIntensity = 0.5f;
+	lightSources.push_back(new Light(glm::vec4(0.0f, 10.0f, 0.0f, 0.0f), glm::vec3(1, 1, 1)));
+	//lightSources[0]->ambientIntensity = 0.06f;
+//	lightSources.push_back(new Light(glm::vec4(0.0f, 2.0f, 0.0f,1.0f), glm::vec3(0, 1, 1)));
+	//lightSources[1]->attenuation = 0.1f;
+	//lightSources[1]->ambientIntensity = 0.0f;
+	//lightSources[1]->coneAngle = 15.0f;
+	//lightSources[1]->coneDirection = glm::vec3(0,0,-1);
 	//Create a gameModel and push it into a vector
 	gameModels.push_back(new FBXGameObject("./models/pyro/pyro.fbx","Landscape/Shaders/fbxAnimatedShader",true));
 	//Give this certain object a scale
 	gameModels[0]->Scale(glm::vec3(0.001f, 0.001f, 0.001f));
+	//Moves this object to a certain posotion
+	gameModels[0]->Translate(glm::vec3(0, 1, 0));
 	gameModels.push_back(new FBXGameObject("./models/soulspear/soulspear.fbx", "Landscape/Shaders/fbxShader", false));
 	//Create an emitter and push it into a vector
 	m_emitter.push_back(new ParticleEmitter("./Landscape/Shaders/particleShader"));
@@ -77,7 +87,6 @@ bool LandscapeApp::startup() {
 	//Setup the Frame Buffer and Quad for the window
 	postProcessor->SetupFrameBuffer(getWindowHeight(),getWindowWidth());
 	postProcessor->SetupFrameQuad  (getWindowHeight(),getWindowWidth());
-
 	//---Create the heightmap---
 	heightMap = new HeightMap();
 	glEnable(GL_BLEND);
@@ -109,7 +118,8 @@ void LandscapeApp::update(float deltaTime) {
 	float time = getTime();
 	heightMap->timePassed = time;
 	static float wrap_width = 200.0f;
-
+	//Update the camera
+	m_camera->Update(deltaTime);
 	//Turn on/off wireframe if enabled
 	if (m_isWireframe)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -145,8 +155,8 @@ void LandscapeApp::update(float deltaTime) {
 
 	//Draw the Post Process UI
 	postProcessor->DrawPostProcessUI();
-	//Update the camera
-	m_camera->Update(deltaTime);
+	//lightSources[1]->position = glm::vec4(m_camera->GetPos(),1);
+	//lightSources[1]->coneDirection = m_camera->m_cameraLook;
 
 
 	for (auto& member : m_emitter){
@@ -164,14 +174,13 @@ void LandscapeApp::update(float deltaTime) {
 	float s = glm::cos(time) * 0.5f  + 0.5f;
 	glm::vec3 p = (1.0f - s) * m_positions[0] + s * m_positions[1];
 	glm::quat r = glm::slerp(m_rotations[0],m_rotations[1],s);
-
 	gameModels[1]->SlerpTo(p, r);
 	//Slerping a game model between two points
-	const mat4 sphereMat = glm::translate(glm::vec3(vec3(glm::cos(time * 0.5) * 30, glm::sin(time * 0.1) * 32.5, glm::sin(time * 0.5) * 30)));//translate the sphere in an orbit 3 wide and 3 high
+	const mat4 sphereMat = glm::translate(glm::vec3(vec3(glm::cos(time * 0.5) * 30, 25, glm::sin(time * 0.5) * 30)));//translate the sphere in an orbit 3 wide and 3 high
 
 	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 12, vec4(1, 0, 0, 0.5f), &sphereMat);
 	//Adding a sphere into the scene and rotation in a circle which will be the lights postion
-	lightSources[0]->SetPosition(sphereMat[3].xyz);
+	lightSources[0]->SetPosition(sphereMat[3].xyzw);
 	m_cameraPosition = m_camera->GetPos();
 	//Setting the main lights position and storing the camera pos
 	
@@ -206,13 +215,11 @@ void LandscapeApp::draw() {
 	// wipe the screen to the background colour
 	clearScreen();
 	glPolygonMode(GL_FRONT_AND_BACK,GL_FRONT);
-	Gizmos::draw(m_projectionMatrix * m_camera->GetView());
+	Gizmos::draw(m_camera->GetProjection() * m_camera->GetView());
 
 	// update perspective in case window resized
-	m_projectionMatrix = glm::perspective(glm::pi<float>() * 0.25f,
-										  getWindowWidth() / (float)getWindowHeight(),
-										  0.1f, 1000.f);
-	glm::mat4 projectionView = m_projectionMatrix * m_camera->GetView();
+	
+	glm::mat4 projectionView = m_camera->GetProjection() * m_camera->GetView();
 	//Draw the heightmap
 	heightMap->DrawHeightMap(projectionView, lightSources, m_camera);
 	for (auto& member : gameModels)
@@ -226,7 +233,10 @@ void LandscapeApp::draw() {
 	//Draw the game models and emitter
 
 	ObjectCreator->DrawAll(projectionView);
-
+	ImGui::Begin("s");
+	bool vis = m_camera->isVisible(glm::vec3(1, 1, 1), glm::vec3(1, 2, 1));
+	ImGui::Checkbox("yesno", &vis);
+	ImGui::End();
 	//Draw the Post Processor
 	postProcessor->DrawPostProcess(postProcessor->m_enablePostProcess, getWindowHeight(), getWindowWidth());
 }

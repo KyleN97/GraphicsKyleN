@@ -16,13 +16,12 @@ uniform float speed = 1;
 void main ()								
 {											
 	fNormal = vNormal;
-	fUv = vUv;			
-		
+	fUv = vUv;				
 	fPos = vPosition.xyz;	
 						
 	vec4 sp = texture2D(splat,fUv);
-			if(sp.z >= 0.5f){
-				fPos.y += sin((frequency * fPos.x)+(Time * frequency))*amplitude;
-		}							
-  gl_Position = projectionView * vec4(fPos,1);	
+	if(sp.z >= 0.5f)
+		fPos.y += sin((frequency * fPos.x)+(Time * frequency))*amplitude;
+
+  	gl_Position = projectionView * vec4(fPos,1);	
 };											
