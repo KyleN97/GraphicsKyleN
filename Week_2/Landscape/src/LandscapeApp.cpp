@@ -62,14 +62,14 @@ bool LandscapeApp::startup() {
 	lightSources[1]->SetConeAngle(15);
 	lightSources[1]->SetConeDirection(glm::vec3(0,0,-1));
 	//Create a gameModel and push it into a vector
-	gameModels.push_back(new FBXGameObject("./models/pyro/pyro.fbx","Landscape/Shaders/fbxAnimatedShader",true));
+	gameModels.push_back(new FBXGameObject("Landscape/models/pyro/pyro.fbx","Landscape/Shaders/fbxAnimatedShader",true));
 	//Give this certain object a scale
 	gameModels[0]->Scale(glm::vec3(0.001f, 0.001f, 0.001f));
 	//Moves this object to a certain posotion
 	gameModels[0]->Translate(glm::vec3(0, 1, 0));
-	gameModels.push_back(new FBXGameObject("./models/soulspear/soulspear.fbx", "Landscape/Shaders/fbxShader", false));
+	gameModels.push_back(new FBXGameObject("Landscape/models/soulspear/soulspear.fbx", "Landscape/Shaders/fbxShader", false));
 	//Create an emitter and push it into a vector
-	m_emitter.push_back(new ParticleEmitter("./Landscape/Shaders/particleShader"));
+	m_emitter.push_back(new ParticleEmitter("Landscape/Shaders/particleShader"));
 	m_emitter[0]->Init(100000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 1, 0, 1), glm::vec4(0, 0, 0, 1), glm::vec3(10, 2, 2));
 	//Create an Object Creator
 	ObjectCreator = new GameObject();
