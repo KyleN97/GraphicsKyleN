@@ -106,29 +106,6 @@ void Camera::SetPosition(glm::vec3 position)
 	CalculateView();
 }
 
-bool Camera::isVisible(glm::vec3 position, glm::vec3 furthestpos)
-{
-	glm::mat4 projView = m_projectionMatrix * m_viewMatrix;
-	position = (projView * glm::vec4(position, 1)).xyz;
-	furthestpos = (projView * glm::vec4(furthestpos, 1)).xyz;
-
-	glm::vec3 radiul = position - furthestpos;
-
-	float radius = radiul.length();
-
-	//if (position.x <= 1.0f && position.x >= -1.0f &&
-	//	position.y <= 1.0f && position.y >= -1.0f &&
-	//	position.z <= 1.0f && position.y >= 1.0f){
-	//	return true;
-	//}
-	for (int i = 0;i < 3; i++)
-	{
-		if (abs(position[i]) >= 1)
-			return false;
-	}
-	return true;
-}
-
 void Camera::CalculateLook()
 {
 	//some circle geometry maths to convert the viewing angle from

@@ -42,6 +42,9 @@ protected:
 
 	glm::vec3 m_positions[2];
 	glm::quat m_rotations[2];
+	//culling test
+	glm::vec3 cullingObjectPosition = glm::vec3(5,5,5);
+	float cullingObjectRadius = 1.5;
 
 	glm::mat4	m_viewMatrix;
 

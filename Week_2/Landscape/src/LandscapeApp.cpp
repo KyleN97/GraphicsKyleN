@@ -130,8 +130,6 @@ void LandscapeApp::update(float deltaTime) {
 		ImGui::Begin("Lighting Editor" + i);
 		ImGui::SliderFloat("Ambient Strength", &lightSources[i]->ambientIntensity, 0, 10);
 		ImGui::SliderFloat("Specular Strength", &lightSources[i]->SpecIntensity, 0, 10000);
-		//ImGui::SliderFloat("Attenuation", &lightSources[i]->attenuation, 0, 10000);
-
 		ImGui::ColorEdit3("Light Color", glm::value_ptr(lightSources[i]->colour));
 		ImGui::ColorEdit3("Spec Light Color", glm::value_ptr(lightSources[i]->specColor));
 		ImGui::End();
@@ -182,7 +180,7 @@ void LandscapeApp::update(float deltaTime) {
 	gameModels[1]->SlerpTo(p, r);
 	//Slerping a game model between two points
 	const mat4 sphereMat = glm::translate(glm::vec3(vec3(glm::cos(time * 0.5) * 30, 25, glm::sin(time * 0.5) * 30)));//translate the sphere in an orbit 3 wide and 3 high
-
+	Gizmos::addSphere(cullingObjectPosition,cullingObjectRadius, 32, 32, glm::vec4(0, 1, 1, 1));//culling test object
 	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 12, vec4(1, 0, 0, 0.5f), &sphereMat);
 	//Adding a sphere into the scene and rotation in a circle which will be the lights postion
 	//lightSources[1]->SetPosition(sphereMat[3].xyzw);
@@ -221,7 +219,6 @@ void LandscapeApp::draw() {
 	clearScreen();
 	glPolygonMode(GL_FRONT_AND_BACK,GL_FRONT);
 	Gizmos::draw(m_camera->GetProjection() * m_camera->GetView());
-
 	// update perspective in case window resized
 	
 	glm::mat4 projectionView = m_camera->GetProjection() * m_camera->GetView();
@@ -238,9 +235,9 @@ void LandscapeApp::draw() {
 	//Draw the game models and emitter
 
 	ObjectCreator->DrawAll(projectionView);
-	ImGui::Begin("s");
-	bool vis = m_camera->isVisible(glm::vec3(1, 1, 1), glm::vec3(1, 2, 1));
-	ImGui::Checkbox("yesno", &vis);
+	ImGui::Begin("Frustrum Culling");
+	bool vis = m_camera->getFrustrumPlanes(projectionView, cullingObjectPosition.x,cullingObjectPosition.y,cullingObjectPosition.z,cullingObjectRadius);
+	ImGui::Checkbox("Is culling object Visible: ", &vis);
 	ImGui::End();
 	//Draw the Post Processor
 	postProcessor->DrawPostProcess(postProcessor->m_enablePostProcess, getWindowHeight(), getWindowWidth());
