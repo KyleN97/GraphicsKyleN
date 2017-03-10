@@ -230,25 +230,25 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 		attenuation[i] = lightSources[i]->getAttenuation();
 		coneangle[i] = lightSources[i]->getConeAngle();
 		specPower[i] = lightSources[i]->getSpecIntensity();
-		std::cout << "lightSpecColor:"<< i << ":--- " << glm::to_string(lightSources[i]->getSpecColor())	 << std::endl;
-		std::cout << "lightPosition:" << i << ":--- " << glm::to_string(lightSources[i]->getPosition())		 << std::endl;
-		std::cout << "lightColor:"	  << i << ":--- " << glm::to_string(lightSources[i]->getColour())		 << std::endl;
-		std::cout << "ConeDirection:" << i << ":--- " << glm::to_string(lightSources[i]->getConeDirection()) << std::endl;
-
-		std::cout << "ambient:"	   <<i<< ":--- " << lightSources[i]->getAmbientIntensity()  << std::endl;
-		std::cout << "attenuation:"<<i<< ":--- " << lightSources[i]->getAttenuation()		<< std::endl;
-		std::cout << "coneangle:"  <<i<< ":--- " << lightSources[i]->getConeAngle()			<< std::endl;
-		std::cout << "specPower:"  <<i<< ":--- " << lightSources[i]->getSpecIntensity()		<< std::endl;
+		//std::cout << "lightSpecColor:"<< i << ":--- " << glm::to_string(lightSources[i]->getSpecColor())	 << std::endl;
+		//std::cout << "lightPosition:" << i << ":--- " << glm::to_string(lightSources[i]->getPosition())		 << std::endl;
+		//std::cout << "lightColor:"	  << i << ":--- " << glm::to_string(lightSources[i]->getColour())		 << std::endl;
+		//std::cout << "ConeDirection:" << i << ":--- " << glm::to_string(lightSources[i]->getConeDirection()) << std::endl;
+		//
+		//std::cout << "ambient:"	   <<i<< ":--- " << lightSources[i]->getAmbientIntensity()  << std::endl;
+		//std::cout << "attenuation:"<<i<< ":--- " << lightSources[i]->getAttenuation()		<< std::endl;
+		//std::cout << "coneangle:"  <<i<< ":--- " << lightSources[i]->getConeAngle()			<< std::endl;
+		//std::cout << "specPower:"  <<i<< ":--- " << lightSources[i]->getSpecIntensity()		<< std::endl;
 
 	}
-		glUniform1fv(glGetUniformLocation(m_shader->m_program,  "lightAmbientStrength"),2, ambient);
-		glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightSpecColor"),		2, glm::value_ptr(lightSources[0]->getSpecColor()));
-		glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightPosition"),		2, glm::value_ptr(lightSources[0]->getPosition()));
-		glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightColor"),			2, glm::value_ptr(lightSources[0]->getColour()));
-		glUniform1fv(glGetUniformLocation(m_shader->m_program,  "attenuation"),			2, attenuation);
-		glUniform1fv(glGetUniformLocation(m_shader->m_program,  "coneangle"),			2, coneangle);
-		glUniform3fv(glGetUniformLocation(m_shader->m_program, "coneDirection"),		2, glm::value_ptr(lightSources[0]->getConeDirection()));
-		glUniform1fv(glGetUniformLocation (m_shader->m_program, "specPower"),			2, specPower);
+		glUniform1fv(glGetUniformLocation(m_shader->m_program,  "lightAmbientStrength"),lightSources.size(), ambient);
+		glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightSpecColor"),		lightSources.size(), glm::value_ptr(lightSources[0]->getSpecColor()));
+		glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightPosition"),		lightSources.size(), glm::value_ptr(lightSources[0]->getPosition()));
+		glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightColor"),			lightSources.size(), glm::value_ptr(lightSources[0]->getColour()));
+		glUniform1fv(glGetUniformLocation(m_shader->m_program,  "attenuation"),			lightSources.size(), attenuation);
+		glUniform1fv(glGetUniformLocation(m_shader->m_program,  "coneangle"),			lightSources.size(), coneangle);
+		glUniform3fv(glGetUniformLocation(m_shader->m_program, "coneDirection"),		lightSources.size(), glm::value_ptr(lightSources[0]->getConeDirection()));
+		glUniform1fv(glGetUniformLocation (m_shader->m_program, "specPower"),			lightSources.size(), specPower);
 		//camera
 		glUniform3fv(glGetUniformLocation(m_shader->m_program, "camPos"), 1, &camera->GetPos()[0]);
 		//water below

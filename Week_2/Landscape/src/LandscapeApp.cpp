@@ -32,6 +32,7 @@ STEP 4: Unload Shader and Geometry
 #include "GameObject.h"
 #include "FBXGameObject.h"
 #include "HeightMap.h"
+#include <iostream>
 using glm::vec3;
 using glm::vec4;
 using glm::mat4;
@@ -51,16 +52,21 @@ bool LandscapeApp::startup() {
 	m_camera = new Camera(this);
 	m_camera->SetPosition(glm::vec3(5.0f, 5.0f, 5.0f));
 	m_camera->LookAt(glm::vec3(0.0f, 0.0f, 0.0f));
+
 	//Create a light at a certain position and colour -  push it into a vector of lights
+	//---Point Light---//
 	//lightSources.push_back(new Light(glm::vec4(0.0f, 5.0f, 0.0f,1.0f), glm::vec3(1, 1, 1)));
 	//lightSources[0]->ambientIntensity = 0.5f;
+	//---Directional Light---//
 	lightSources.push_back(new Light(glm::vec4(0.0f, 10.0f, 0.0f, 0.0f), glm::vec3(1, 1, 1)));
 	lightSources[0]->SetAttenuation(1.0);
+	//---Point Light---//
 	lightSources.push_back(new Light(glm::vec4(0.0f,30.0f , 0.0f, 1.0f), glm::vec3(0, 1, 0)));
 	lightSources[1]->SetAttenuation(0.1f);
 	lightSources[1]->SetAmbient(0.0f);
 	lightSources[1]->SetConeAngle(15);
 	lightSources[1]->SetConeDirection(glm::vec3(0,0,-1));
+
 	//Create a gameModel and push it into a vector
 	gameModels.push_back(new FBXGameObject("Landscape/models/pyro/pyro.fbx","Landscape/Shaders/fbxAnimatedShader",true));
 	//Give this certain object a scale
@@ -84,7 +90,7 @@ bool LandscapeApp::startup() {
 	m_positions[1] = glm::vec3(-10, 0, -10);
 	m_rotations[0] = glm::quat(glm::vec3(0,-1, 0));
 	m_rotations[1] = glm::quat(glm::vec3(0, 1, 0));
-	//Setup the Frame Buffer and Quad for the window
+	////Setup the Frame Buffer and Quad for the window
 	postProcessor->SetupFrameBuffer(getWindowHeight(),getWindowWidth());
 	postProcessor->SetupFrameQuad  (getWindowHeight(),getWindowWidth());
 	//---Create the heightmap---
@@ -127,7 +133,8 @@ void LandscapeApp::update(float deltaTime) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	for (int i = 0; i < lightSources.size(); ++i)
 	{
-		ImGui::Begin("Lighting Editor" + i);
+		std::string lightEditor = "Light : " + std::to_string(i) + " Editor";
+		ImGui::Begin(lightEditor.c_str());
 		ImGui::SliderFloat("Ambient Strength", &lightSources[i]->ambientIntensity, 0, 10);
 		ImGui::SliderFloat("Specular Strength", &lightSources[i]->SpecIntensity, 0, 10000);
 		ImGui::ColorEdit3("Light Color", glm::value_ptr(lightSources[i]->colour));
@@ -184,8 +191,7 @@ void LandscapeApp::update(float deltaTime) {
 	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 12, vec4(1, 0, 0, 0.5f), &sphereMat);
 	//Adding a sphere into the scene and rotation in a circle which will be the lights postion
 	//lightSources[1]->SetPosition(sphereMat[3].xyzw);
-	m_cameraPosition = m_camera->GetPos();
-	//Setting the main lights position and storing the camera pos
+
 	
 	//Draw a Grid
 	//DrawGrid();
@@ -214,7 +220,9 @@ void LandscapeApp::DrawGrid()
 
 void LandscapeApp::draw() {
 	//Init the Post Processor
-	postProcessor->InitDrawPostProcess(postProcessor->m_enablePostProcess, getWindowHeight(), getWindowWidth());
+	postProcessor->InitDrawPostProcess(postProcessor->m_enablePostProcess, getWindowWidth(), getWindowHeight());
+	std::cout << getWindowHeight() << std::endl;
+	std::cout << getWindowWidth() << std::endl;
 	// wipe the screen to the background colour
 	clearScreen();
 	glPolygonMode(GL_FRONT_AND_BACK,GL_FRONT);
@@ -240,5 +248,5 @@ void LandscapeApp::draw() {
 	ImGui::Checkbox("Is culling object Visible: ", &vis);
 	ImGui::End();
 	//Draw the Post Processor
-	postProcessor->DrawPostProcess(postProcessor->m_enablePostProcess, getWindowHeight(), getWindowWidth());
+	postProcessor->DrawPostProcess(postProcessor->m_enablePostProcess, getWindowWidth(), getWindowHeight());
 }

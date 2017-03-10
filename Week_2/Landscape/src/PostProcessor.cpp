@@ -12,13 +12,13 @@ PostProcessor::~PostProcessor()
 {
 }
 
-void PostProcessor::SetupFrameBuffer(unsigned int windowHeight, unsigned int windowWidth)
+void PostProcessor::SetupFrameBuffer(unsigned int windowWidth, unsigned int windowHeight)
 {
 	glGenFramebuffers(1, &m_fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 	glGenTextures(1, &m_fboTexture);
 	glBindTexture(GL_TEXTURE_2D, m_fboTexture);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, windowHeight, windowWidth);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, windowWidth, windowHeight);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_fboTexture, 0);
@@ -31,7 +31,7 @@ void PostProcessor::SetupFrameBuffer(unsigned int windowHeight, unsigned int win
 	//Generate all buffers ,setup textrues and draw and bind all of those buffers + textures
 }
 
-void PostProcessor::SetupFrameQuad(unsigned int windowHeight, unsigned int windowWidth)
+void PostProcessor::SetupFrameQuad(unsigned int windowWidth, unsigned int windowHeight)
 {
 	glm::vec2 texelSize = 1.0f / glm::vec2(windowWidth, windowHeight);
 	// full screen quad
@@ -55,7 +55,7 @@ void PostProcessor::SetupFrameQuad(unsigned int windowHeight, unsigned int windo
 	//Generate the vertex array objects and setup all the pointers + attrib arrays
 }
 
-void PostProcessor::InitDrawPostProcess(bool isOn, unsigned int windowHeight, unsigned int windowWidth)
+void PostProcessor::InitDrawPostProcess(bool isOn, unsigned int windowWidth, unsigned int windowHeight)
 {
 	if (isOn)
 	{
@@ -67,10 +67,11 @@ void PostProcessor::InitDrawPostProcess(bool isOn, unsigned int windowHeight, un
 	}
 }
 
-void PostProcessor::DrawPostProcess(bool isOn, unsigned int windowHeight, unsigned int windowWidth)
+void PostProcessor::DrawPostProcess(bool isOn, unsigned int windowWidth, unsigned int windowHeight)
 {
 	if (isOn)//If we are Post Processing
 	{
+
 		// bind the back-buffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, windowWidth, windowHeight);

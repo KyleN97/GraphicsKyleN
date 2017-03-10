@@ -5,10 +5,10 @@ class PostProcessor
 public:
 	PostProcessor();
 	~PostProcessor();
-	void SetupFrameBuffer(unsigned int windowHeight,unsigned int windowWidth);//Setup the fram buffer
-	void SetupFrameQuad(unsigned int windowHeight, unsigned int windowWidth);//Setup the frame quad
-	void InitDrawPostProcess(bool isOn, unsigned int windowHeight, unsigned int windowWidth);//Initialise the Drawing process of the Fram Buffer
-	void DrawPostProcess(bool isOn, unsigned int windowHeight, unsigned int windowWidth);//Draw the Frame Buffer
+	void SetupFrameBuffer(unsigned int windowWidth,unsigned int windowHeight);//Setup the fram buffer
+	void SetupFrameQuad(unsigned int windowWidth, unsigned int windowHeight);//Setup the frame quad
+	void InitDrawPostProcess(bool isOn, unsigned int windowWidth, unsigned int windowHeight);//Initialise the Drawing process of the Fram Buffer
+	void DrawPostProcess(bool isOn, unsigned int windowWidth, unsigned int windowHeight);//Draw the Frame Buffer
 	void DrawPostProcessUI();//Draw the UI to change Post Processing modes
 	bool m_enablePostProcess = false;
 

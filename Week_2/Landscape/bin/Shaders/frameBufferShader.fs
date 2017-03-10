@@ -49,6 +49,4 @@
 	else if(greyScale == true){
 		fragColour = GreyScale();
 	}
-
-	
  }
