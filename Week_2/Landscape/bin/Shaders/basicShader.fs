@@ -9,63 +9,53 @@ uniform sampler2D sand;
 uniform sampler2D snow;
 uniform sampler2D splat;
 uniform sampler2D water;	
-uniform float[32] lightAmbientStrength;						
-uniform vec4[32] lightPosition;								
-uniform vec3[32] lightColor;	
-uniform vec3[32] lightSpecColor;	
-uniform float[32] attenuation;
-uniform float[32] coneangle;
-uniform vec3[32] coneDirection;	
+uniform float[2] lightAmbientStrength;						
+uniform vec4[2] lightPosition;								
+uniform vec3[2] lightColor;	
+uniform vec3[2] lightSpecColor;	
+uniform float[2] attenuation;
+uniform float[2] coneangle;
+uniform vec3[2] coneDirection;	
 uniform float specPower = 32;
 uniform vec3 camPos;
 uniform float blend = 50.0f;
 const float texSize = 10.0f;
-uniform float Time;		
+uniform float Time;	
+vec3 finalLighting = vec3(0,0,0);	
 void main ()												
 {		
-	vec3 norm[32];
-	vec3 lightDir[32];
-	float diff[32];
-	vec3 R[32];
-	vec3 E[32];
-	float specTerm[32];
-	vec3 totalDiffuse[32]; 
-	vec3 finalAmbient[32]; 
-	vec3 totalSpecular[32];
+	vec3 lightDir;
 	vec4 texColor;
-	vec3 finalLighting;
-	
-
-
-	for(int i = 0; i < 2; ++i){
+	for(int i = 0; i < 2; i++){
 		float attenuationFactor = 1.0;
 		if(lightPosition[i].w  == 0){
-			lightDir[i] = normalize(lightPosition[i].xyz);
+			lightDir = normalize(lightPosition[i].xyz);
 			attenuationFactor = 1.0;
 		}
 		else{
-			 lightDir[i] = normalize(lightPosition[i].xyz - fPos);	
-			// //spotlight
+			////spotlight
 			 float distanceToLight = length(lightPosition[i].xyz - fPos);
+			 lightDir = normalize(lightPosition[i].xyz - fPos);				 
 			 attenuationFactor = 1.0 / (1.0 + attenuation[i] * pow(distanceToLight,2));
  
 			 //cone
-			 float lightToSurfaceAngle = degrees(acos(dot(-lightDir[i],normalize(coneDirection[i]))));
+			  float lightToSurfaceAngle = degrees(acos(dot(-lightDir,normalize(coneDirection[i]))));
 			  if(lightToSurfaceAngle > coneangle[i]){
 			  	attenuationFactor = 0.0;
 			  }
 
 		}
-		norm[i] 	= normalize(fNormal.xyz);		
-		diff[i] 	= max(dot(norm[i], lightDir[i]), 0.0);
-		R[i] 		= reflect(-lightDir[i], norm[i]);
-		E[i]	    = normalize(camPos - fPos); 
-		specTerm[i] = pow(max(0.0, dot(R[i], E[i])), specPower); 
 		
-		totalDiffuse[i]  =  diff[i] * lightColor[i]; 
-		finalAmbient[i]  =  lightColor[i] * lightAmbientStrength[i]; 
-		totalSpecular[i] =  lightSpecColor[i] * specTerm[i]; 
-		finalLighting +=  finalAmbient[i] + attenuationFactor * (totalDiffuse[i] + totalSpecular[i]);
+		vec3 norm 	= normalize(fNormal.xyz);		
+		float diff 	= max(dot(norm, lightDir), 0.0);
+		vec3 R		= reflect(-lightDir, norm);
+		vec3 E	    = normalize(camPos - fPos); 
+		float specTerm = pow(max(0.0, dot(R,E)), specPower); 
+		
+		vec3 totalDiffuse  =  diff * lightColor[i]; 
+		vec3 finalAmbient  =  lightColor[i] * lightAmbientStrength[i]; 
+		vec3 totalSpecular =  lightSpecColor[i] * specTerm; 
+		finalLighting +=  finalAmbient + attenuationFactor * (totalDiffuse + totalSpecular);
 				
 	}
 	vec4 sp = texture2D(splat,fUv);
@@ -74,7 +64,7 @@ void main ()
 	texColor += sp.y * texture2D(grass,fUv* texSize);
 
 	if(sp.z >= 0.5f){
-		texColor += mix(texture2D(water,fUv* texSize + Time / 24),texture2D(sand,fUv* texSize),(blend / 100)* -fPos.y);
+		texColor += mix(texture2D(water,fUv * texSize + Time / 24),texture2D(sand,fUv* texSize),(blend / 100)* -fPos.y);
 	}	
 
 	frag_color = texColor * vec4(finalLighting,1.0);	

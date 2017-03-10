@@ -55,12 +55,12 @@ bool LandscapeApp::startup() {
 	//lightSources.push_back(new Light(glm::vec4(0.0f, 5.0f, 0.0f,1.0f), glm::vec3(1, 1, 1)));
 	//lightSources[0]->ambientIntensity = 0.5f;
 	lightSources.push_back(new Light(glm::vec4(0.0f, 10.0f, 0.0f, 0.0f), glm::vec3(1, 1, 1)));
-	//lightSources[0]->ambientIntensity = 0.06f;
-//	lightSources.push_back(new Light(glm::vec4(0.0f, 2.0f, 0.0f,1.0f), glm::vec3(0, 1, 1)));
-	//lightSources[1]->attenuation = 0.1f;
-	//lightSources[1]->ambientIntensity = 0.0f;
-	//lightSources[1]->coneAngle = 15.0f;
-	//lightSources[1]->coneDirection = glm::vec3(0,0,-1);
+	lightSources[0]->SetAttenuation(1.0);
+	lightSources.push_back(new Light(glm::vec4(0.0f,30.0f , 0.0f, 1.0f), glm::vec3(0, 1, 0)));
+	lightSources[1]->SetAttenuation(0.1f);
+	lightSources[1]->SetAmbient(0.0f);
+	lightSources[1]->SetConeAngle(15);
+	lightSources[1]->SetConeDirection(glm::vec3(0,0,-1));
 	//Create a gameModel and push it into a vector
 	gameModels.push_back(new FBXGameObject("./models/pyro/pyro.fbx","Landscape/Shaders/fbxAnimatedShader",true));
 	//Give this certain object a scale
@@ -125,13 +125,18 @@ void LandscapeApp::update(float deltaTime) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	else
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	for (int i = 0; i < lightSources.size(); ++i)
+	{
+		ImGui::Begin("Lighting Editor" + i);
+		ImGui::SliderFloat("Ambient Strength", &lightSources[i]->ambientIntensity, 0, 10);
+		ImGui::SliderFloat("Specular Strength", &lightSources[i]->SpecIntensity, 0, 10000);
+		//ImGui::SliderFloat("Attenuation", &lightSources[i]->attenuation, 0, 10000);
 
-	ImGui::Begin("Lighting Editor");
-	ImGui::SliderFloat("Ambient Strength", &lightSources[0]->ambientIntensity, 0, 1);
-	ImGui::SliderFloat("Specular Strength", &lightSources[0]->SpecIntensity, 0, 10000);
-	ImGui::ColorEdit3("Light Color", glm::value_ptr(lightSources[0]->colour));
-	ImGui::ColorEdit3("Spec Light Color", glm::value_ptr(lightSources[0]->specColor));
-	ImGui::End();
+		ImGui::ColorEdit3("Light Color", glm::value_ptr(lightSources[i]->colour));
+		ImGui::ColorEdit3("Spec Light Color", glm::value_ptr(lightSources[i]->specColor));
+		ImGui::End();
+	}
+
 	
 	ImGui::Begin("Landscape Editor");
 	ImGui::Checkbox("WireFrame", &m_isWireframe);
@@ -155,8 +160,8 @@ void LandscapeApp::update(float deltaTime) {
 
 	//Draw the Post Process UI
 	postProcessor->DrawPostProcessUI();
-	//lightSources[1]->position = glm::vec4(m_camera->GetPos(),1);
-	//lightSources[1]->coneDirection = m_camera->m_cameraLook;
+	lightSources[1]->SetPosition(glm::vec4(m_camera->GetPos(),1));
+	lightSources[1]->SetConeDirection(m_camera->m_cameraLook);
 
 
 	for (auto& member : m_emitter){
@@ -180,7 +185,7 @@ void LandscapeApp::update(float deltaTime) {
 
 	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 12, vec4(1, 0, 0, 0.5f), &sphereMat);
 	//Adding a sphere into the scene and rotation in a circle which will be the lights postion
-	lightSources[0]->SetPosition(sphereMat[3].xyzw);
+	//lightSources[1]->SetPosition(sphereMat[3].xyzw);
 	m_cameraPosition = m_camera->GetPos();
 	//Setting the main lights position and storing the camera pos
 	

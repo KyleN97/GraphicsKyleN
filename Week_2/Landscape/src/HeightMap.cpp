@@ -2,6 +2,7 @@
 #include <gl_core_4_4.h>
 #include <glm/ext.hpp>
 #include <imgui.h>
+#include <iostream>
 HeightMap::HeightMap()
 {
 	m_shader = new Shader("./Landscape/Shaders/basicShader");
@@ -216,23 +217,45 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 		false,
 		glm::value_ptr(projectionView));
 	// Step 3: Bind the VAO
-	for (int i = 0; i < /*lightSources.size()*/1;++i) {
+	const int sizeoflightsources = lightSources.size();
+	GLfloat *ambient,*attenuation,*coneangle,*specPower;
+	ambient = new GLfloat[lightSources.size()];
+	attenuation = new GLfloat[lightSources.size()];
+	coneangle = new GLfloat[lightSources.size()];
+	specPower = new GLfloat[lightSources.size()];
 
-		glUniform1f(glGetUniformLocation(m_shader->m_program,  "lightAmbientStrength"),lightSources[i]->getAmbientIntensity());
-		glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightSpecColor"), i, &lightSources[i]->getSpecColor()[0]);
-		glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightPosition"), i, &lightSources[i]->getPosition()[0]);
-		glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightColor"), i, &lightSources[i]->getColour()[0]);
-		glUniform1f(glGetUniformLocation(m_shader->m_program,  "attenuation"), lightSources[i]->getAttenuation());
-		glUniform1f(glGetUniformLocation(m_shader->m_program,  "coneangle"),lightSources[i]->coneAngle);
-		glUniform3fv(glGetUniformLocation(m_shader->m_program, "coneDirection"), i,&lightSources[i]->getConeDirection()[0]);
-		glUniform1f(glGetUniformLocation (m_shader->m_program, "specPower"),lightSources[i]->SpecIntensity);
+	for (int i = 0; i < lightSources.size(); i++)
+	{
+		ambient[i] = lightSources[i]->getAmbientIntensity();
+		attenuation[i] = lightSources[i]->getAttenuation();
+		coneangle[i] = lightSources[i]->getConeAngle();
+		specPower[i] = lightSources[i]->getSpecIntensity();
+		std::cout << "lightSpecColor:"<< i << ":--- " << glm::to_string(lightSources[i]->getSpecColor())	 << std::endl;
+		std::cout << "lightPosition:" << i << ":--- " << glm::to_string(lightSources[i]->getPosition())		 << std::endl;
+		std::cout << "lightColor:"	  << i << ":--- " << glm::to_string(lightSources[i]->getColour())		 << std::endl;
+		std::cout << "ConeDirection:" << i << ":--- " << glm::to_string(lightSources[i]->getConeDirection()) << std::endl;
+
+		std::cout << "ambient:"	   <<i<< ":--- " << lightSources[i]->getAmbientIntensity()  << std::endl;
+		std::cout << "attenuation:"<<i<< ":--- " << lightSources[i]->getAttenuation()		<< std::endl;
+		std::cout << "coneangle:"  <<i<< ":--- " << lightSources[i]->getConeAngle()			<< std::endl;
+		std::cout << "specPower:"  <<i<< ":--- " << lightSources[i]->getSpecIntensity()		<< std::endl;
+
+	}
+		glUniform1fv(glGetUniformLocation(m_shader->m_program,  "lightAmbientStrength"),2, ambient);
+		glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightSpecColor"),		2, glm::value_ptr(lightSources[0]->getSpecColor()));
+		glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightPosition"),		2, glm::value_ptr(lightSources[0]->getPosition()));
+		glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightColor"),			2, glm::value_ptr(lightSources[0]->getColour()));
+		glUniform1fv(glGetUniformLocation(m_shader->m_program,  "attenuation"),			2, attenuation);
+		glUniform1fv(glGetUniformLocation(m_shader->m_program,  "coneangle"),			2, coneangle);
+		glUniform3fv(glGetUniformLocation(m_shader->m_program, "coneDirection"),		2, glm::value_ptr(lightSources[0]->getConeDirection()));
+		glUniform1fv(glGetUniformLocation (m_shader->m_program, "specPower"),			2, specPower);
+		//camera
 		glUniform3fv(glGetUniformLocation(m_shader->m_program, "camPos"), 1, &camera->GetPos()[0]);
 		//water below
 		glUniform1f(glGetUniformLocation(m_shader->m_program,  "Time"), timePassed);
 		glUniform1f(glGetUniformLocation(m_shader->m_program,  "amplitude"), waterAmplitude);
-		glUniform1f(glGetUniformLocation(m_shader->m_program,  "frequency"), waterFrequency);
+		glUniform1f(glGetUniformLocation(m_shader->m_program,  "frequency"), waterFrequency); 
 		glUniform1f(glGetUniformLocation(m_shader->m_program,  "speed"), waterSpeed);
-	}
 	// When we setup the geometry, we did a bunch of glEnableVertexAttribArray and glVertexAttribPointer method calls
 	// we also Bound the vertex array and index array via the glBindBuffer call.
 	// if we where not using VAO's we would have to do thoes method calls each frame here.
