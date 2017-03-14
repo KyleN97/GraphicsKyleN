@@ -19,7 +19,7 @@ void GameObject::Create()
 	{
 		objectShaders.push_back(new Shader("Landscape/Shaders/cube"));
 		CreateCube(glm::vec3(gameObjects[amountOfObjects]->objectScale));
-	}
+	}//When creating check if it is a cube , if so create a shader and the cube
 	gameObjects.push_back(new Object());
 	amountOfObjects++;
 	gameObjects[amountOfObjects]->objectPosition = glm::vec3(1, 1, 1);
@@ -178,12 +178,12 @@ void GameObject::DrawAll(glm::mat4 projectionView)
 		if (gameObjects[i]->objectType == "AABBFilled")
 		{
 			DrawCube(projectionView);
-		}
+		}//for each cube in the gameobjects, draw it
 
 	}//Draw all gameobjects
 }
 
-void Object::Update(float d_time)
+void Object::Update(float d_time)//To be used if an operation needs to be peformed on certain/all gameobjects
 {
 	/*This is to be used to have generalised update functions for all gameobjects
 		Such as rotating all objects every frame...*/

@@ -1,24 +1,25 @@
 #include "FBXGameObject.h"
 #include "gl_core_4_4.h"
 #include "imgui.h"
-
+#include <iostream>
 FBXGameObject::FBXGameObject(const char* fileName,const char* shaderName,bool hasAnimations)
 {
 	m_fbxFile = new FBXFile();
 	m_skeleton = new FBXSkeleton();
 	m_animation = new FBXAnimation();
-
-	m_fbxFile->load(fileName,FBXFile::UNITS_CENTIMETER);
+	//Create the file, skeleton and animation
+	m_fbxFile->load(fileName,FBXFile::UNITS_CENTIMETER);//Load the file and scale using Centimeters
+	std::cout << "Succesfully loaded: " << fileName << std::endl;
 	if (hasAnimations) {
 		CreateFBXAnimatedOpenGLBuffers(m_fbxFile);
 		fbxFrameCount = m_fbxFile->getAnimationByIndex(0)->totalFrames();
 		fbxCurrentFrame = 0.0f;
-	}
+	}//Set the frame counter and create the buffers for the animated FBX
 	else {
 		CreateFBXOpenGLBuffers(m_fbxFile);
-	}
-	isAnimated = hasAnimations;
-	m_shader = new Shader(shaderName);
+	}//create the fbx buffers
+	isAnimated = hasAnimations;//Set the isAnimated bool
+	m_shader = new Shader(shaderName);//Create the shaders
 	//Load in the fbx and create a shader and determine wether it is animated or nor and setup buffers dependent
 }
 
@@ -27,6 +28,7 @@ FBXGameObject::~FBXGameObject()
 {
 	CleanupFBXOpenGLBuffers(m_fbxFile);
 	m_fbxFile->unload();
+	//Cleanup buffers and unload the file
 }
 
 void FBXGameObject::CreateFBXOpenGLBuffers(FBXFile * fbx)
@@ -128,6 +130,7 @@ void FBXGameObject::CreateFBXAnimatedOpenGLBuffers(FBXFile * fbx)
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		// attach our GLMesh object to the m_userData pointer.
 		fbxMesh->m_userData = glData;
+		std::cout << "Loading Model ... - " << std::endl;
 	}
 }
 
@@ -202,7 +205,7 @@ void FBXGameObject::Draw(glm::mat4 projectionView, std::vector<Light*>lightSourc
 				glBindTexture(GL_TEXTURE_2D, diffuseTexture);
 			}
 			// bid the texture and send it to our shader
-		
+	//***Pass in the lightsources vector and setup arrays and pass to shader for multiple light support on fbx models***///	
 			glUniform1i(glGetUniformLocation(m_shader->m_program, "diffuseTexture"), 0);
 			glUniform1f(glGetUniformLocation(m_shader->m_program, "lightAmbientStrength"),    lightSources[0]->getAmbientIntensity());
 			glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightSpecColor"), 1,	  &lightSources[0]->getSpecColor()[0]);

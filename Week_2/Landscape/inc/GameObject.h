@@ -9,23 +9,22 @@ class Object
 public:
 	void Update(float d_time);//Update for each individaul object
 public:
-	glm::vec3 objectPosition = glm::vec3(0,0,0);
-	float objectScale = 1.0f;
-	glm::vec4 objectColor = glm::vec4(1,1,1,1);
-	std::string objectType = "default_object";
+	glm::vec3 objectPosition = glm::vec3(0,0,0);//objects position
+	float objectScale = 1.0f;//objects scale
+	glm::vec4 objectColor = glm::vec4(1,1,1,1);//objects color
+	std::string objectType = "default_object";//objects default type
 
 	Shader* objectShader;//Shader for the object
 	aie::Texture* objectTexture;//Texture for the object
 	struct BufferData
 	{
 		unsigned int m_vbo, m_ibo, m_vao, m_IndicesCount;
-	};
+	};//vertex,index buffer + array object + indices count of the object
 	struct Vertex
 	{
 		glm::vec4 pos;
 		glm::vec2 uv;
-	};
-	//Buffer and Vertex data for the object
+	};//Buffer and Vertex data for the object
 };
 class GameObject : public Object
 {
@@ -33,11 +32,11 @@ class GameObject : public Object
 public:
 	GameObject();
 	~GameObject();
-	void Create();
-	void DrawUI();
-	void CreateCube(glm::vec3 scale);
-	void DrawCube(glm::mat4 projectionView);
-	void DrawAll(glm::mat4 projectionView);
+	void Create();//Create an object
+	void DrawUI();//Draw the ui for object creation
+	void CreateCube(glm::vec3 scale);//Create aqcube
+	void DrawCube(glm::mat4 projectionView);//Draw a cube
+	void DrawAll(glm::mat4 projectionView);//Draw all objects
 
 	std::vector<Object*> gameObjects;//All gameobjects
 

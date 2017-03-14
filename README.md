@@ -1,24 +1,15 @@
 # Week2AIE
 ##**Landscape**  
-This week contained work with landscapes.  
-**What was acheived:**  
-- Heightmaps  
-- Normals  
-- Textured surface  
-- Diffuse Lighting  
-- Diffuse Lighting with Normals  
-**What i Added:**  
-- Loading shader within seperate class  
-- Loading in shader from file  
-- Having all resources within Landscape.proj and have Pre-Build events copy over data for .tex etc.  
-- Shader errors are thrown to console.  
+**Graphics**
+TLDR - This project demosntrates the ability to render multple lights,objects,.fbx models(animated).
 **Using The UI:**
 - You will be presented with the following:
     -Post Processing:
         -Enabling Post Processing will allow you to enable - Blur, Distortion and Grey Scale
         -This can be turned back of by unticking all the the boxes for these options
     -Lighting Editor
-        -You can adjust the Ambient Strength and Speculat Strength by dragging a slider
+    -3 Lighting windows - Directional,Spot and Point Lights
+        -You can adjust the Ambient Strength,Specular Strength and colour by dragging a slider or enter values
         -Light and Specular colour can be adjusted by typing in a new colour code.
     -Landscape Editor
         -you can enable and disable wireframe mode for the world.

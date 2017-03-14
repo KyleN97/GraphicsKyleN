@@ -18,17 +18,21 @@ public:
 
 	const glm::mat4 &GetView() {
 		return m_viewMatrix;
-	}
-	const glm::vec3& GetPos();
+	}//Return the view Matrix
+	const glm::vec3& GetPos() {
+		return m_position;
+	}//Get the position of the camera
 	const glm::mat4 &GetProjection() {
 		return m_projectionMatrix;
-	}
+	}//Return the projection Matrix
 	glm::vec3 m_cameraLook;//the actual direction the camera is aiming
 
 private:
-	aie::Application* app;
+	aie::Application* app;//Pointer to the application we are using
 	void CalculateLook();//gives us the vector of direction by using Yaw, Pitch and Roll
-	void CalculateView();// sets up the view matrix based on our camera information
+	void CalculateView() {
+		m_viewMatrix = glm::lookAt(m_position, m_position + m_cameraLook, m_cameraUp);
+	}// sets up the view matrix based on our camera information
 	void CalculateProjection();
 	glm::mat4 m_viewMatrix;	//pass to OpenGL to know how the camera looks at the world
 	glm::mat4 m_projectionMatrix;

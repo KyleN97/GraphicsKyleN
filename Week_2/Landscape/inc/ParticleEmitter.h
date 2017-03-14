@@ -61,7 +61,5 @@ protected:
 	float m_endSize;
 	glm::vec4 m_startColour;
 	glm::vec4 m_endColour;
-	
-	// more to come here!
 };
 

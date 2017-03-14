@@ -123,7 +123,7 @@ bool Camera::getFrustrumPlanes(glm::mat4 & transform, const GLfloat & xPos, cons
 	GLfloat distance = planes[0].x * xPos + planes[0].y * yPos + planes[0].z * zPos + planes[0].w;
 	if (distance <= -radius)
 	{
-		return false; // Bounding sphere is completely outside the left plane
+		return false; // Bounding sphere is completely outside the right plane
 	}
 	// left side
 	planes[1] = glm::vec4(transform[0][3] + transform[0][0],
@@ -154,7 +154,7 @@ bool Camera::getFrustrumPlanes(glm::mat4 & transform, const GLfloat & xPos, cons
 	distance = planes[2].x * xPos + planes[2].y * yPos + planes[2].z * zPos + planes[2].w;
 	if (distance <= -radius)
 	{
-		return false; // Bounding sphere is completely outside the left plane
+		return false; // Bounding sphere is completely outside the top plane
 	}
 	// bottom
 	planes[3] = glm::vec4(transform[0][3] + transform[0][1],
@@ -169,7 +169,7 @@ bool Camera::getFrustrumPlanes(glm::mat4 & transform, const GLfloat & xPos, cons
 	distance = planes[3].x * xPos + planes[3].y * yPos + planes[3].z * zPos + planes[3].w;
 	if (distance <= -radius)
 	{
-		return false; // Bounding sphere is completely outside the left plane
+		return false; // Bounding sphere is completely outside the bottom plane
 	}
 	// far 
 	planes[4] = glm::vec4(transform[0][3] - transform[0][2],
@@ -184,7 +184,7 @@ bool Camera::getFrustrumPlanes(glm::mat4 & transform, const GLfloat & xPos, cons
 	distance = planes[4].x * xPos + planes[4].y * yPos + planes[4].z * zPos + planes[4].w;
 	if (distance <= -radius)
 	{
-		return false; // Bounding sphere is completely outside the left plane
+		return false; // Bounding sphere is completely outside the far plane
 	}
 	// near
 	planes[5] = glm::vec4(transform[0][3] + transform[0][2],
@@ -199,7 +199,7 @@ bool Camera::getFrustrumPlanes(glm::mat4 & transform, const GLfloat & xPos, cons
 	distance = planes[5].x * xPos + planes[5].y * yPos + planes[5].z * zPos + planes[5].w;
 	if (distance <= -radius)
 	{
-		return false; // Bounding sphere is completely outside the left plane
+		return false; // Bounding sphere is completely outside the near plane
 	}
 	return true;
 }
@@ -228,19 +228,10 @@ void Camera::CalculateLook()
 	CalculateProjection();
 }
 
-void Camera::CalculateView()
-{
-	m_viewMatrix = glm::lookAt(m_position, m_position + m_cameraLook, m_cameraUp);
-}
-
 void Camera::CalculateProjection()
 {
 	m_projectionMatrix = glm::perspective(glm::pi<float>() * 0.25f,
 		app->getWindowWidth() / (float)app->getWindowHeight(),
-		0.1f, 1000.f);
+		0.1f, 1000.f);//Calculating the projection matrix - this is resset as the window height an width can change
 }
 
-const glm::vec3 & Camera::GetPos()
-{
-	return m_position;
-}

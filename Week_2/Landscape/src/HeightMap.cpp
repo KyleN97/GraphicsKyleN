@@ -5,12 +5,12 @@
 #include <iostream>
 HeightMap::HeightMap()
 {
-	m_shader = new Shader("./Landscape/Shaders/basicShader");
+	m_shader = new Shader("./Landscape/Shaders/basicShader-MultipleLights");//Create the shader for the heightmap
 	for (size_t i = 0; i < NUM_ITEMS; i++)
 	{
 		m_textures.push_back(NULL);
-	}
-
+	}//Pushback empty textures ready to be loaded
+	
 	//---load heightmap---
 	m_textures[heightmap] = new aie::Texture();
 	m_textures[heightmap]->load("./Landscape/Textures/heightmap.bmp");
@@ -32,13 +32,14 @@ HeightMap::HeightMap()
 
 	m_textures[water] = new aie::Texture();
 	m_textures[water]->load("./Landscape/Textures/water.png");
-	CreateHeightMap();
+
+	CreateHeightMap();//Create the heightmap
 }
 
 
 HeightMap::~HeightMap()
 {
-	DestroyHeightMap();
+	DestroyHeightMap();//Destroy the heightmap
 }
 
 void HeightMap::CreateHeightMap()
@@ -217,12 +218,18 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 		false,
 		glm::value_ptr(projectionView));
 	// Step 3: Bind the VAO
-	const int sizeoflightsources = lightSources.size();
 	GLfloat *ambient,*attenuation,*coneangle,*specPower;
-	ambient = new GLfloat[lightSources.size()];
-	attenuation = new GLfloat[lightSources.size()];
-	coneangle = new GLfloat[lightSources.size()];
-	specPower = new GLfloat[lightSources.size()];
+	glm::vec3 * specCol,*col, *coneDir;
+	glm::vec4* pos;
+	//Gettting all the stats from the lights and storing them within pointer arrays to pass to shader
+	specCol = new glm::vec3[lightSources.size()];//Specular Colour of the light
+	pos = new glm::vec4[lightSources.size()];//Position of the light
+	col = new glm::vec3[lightSources.size()];//Colour of the light
+	coneDir = new glm::vec3[lightSources.size()];//Cone Direction of the spot light
+	ambient = new GLfloat[lightSources.size()];//Ambient of the light
+	attenuation = new GLfloat[lightSources.size()];//Attenuation of the light
+	coneangle = new GLfloat[lightSources.size()];//Angle of the cone for spot light
+	specPower = new GLfloat[lightSources.size()];//specular power of the light
 
 	for (int i = 0; i < lightSources.size(); i++)
 	{
@@ -230,32 +237,28 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 		attenuation[i] = lightSources[i]->getAttenuation();
 		coneangle[i] = lightSources[i]->getConeAngle();
 		specPower[i] = lightSources[i]->getSpecIntensity();
-		//std::cout << "lightSpecColor:"<< i << ":--- " << glm::to_string(lightSources[i]->getSpecColor())	 << std::endl;
-		//std::cout << "lightPosition:" << i << ":--- " << glm::to_string(lightSources[i]->getPosition())		 << std::endl;
-		//std::cout << "lightColor:"	  << i << ":--- " << glm::to_string(lightSources[i]->getColour())		 << std::endl;
-		//std::cout << "ConeDirection:" << i << ":--- " << glm::to_string(lightSources[i]->getConeDirection()) << std::endl;
-		//
-		//std::cout << "ambient:"	   <<i<< ":--- " << lightSources[i]->getAmbientIntensity()  << std::endl;
-		//std::cout << "attenuation:"<<i<< ":--- " << lightSources[i]->getAttenuation()		<< std::endl;
-		//std::cout << "coneangle:"  <<i<< ":--- " << lightSources[i]->getConeAngle()			<< std::endl;
-		//std::cout << "specPower:"  <<i<< ":--- " << lightSources[i]->getSpecIntensity()		<< std::endl;
-
+		specCol[i] = lightSources[i]->getSpecColor();
+		pos[i] = lightSources[i]->getPosition();
+		col[i] = lightSources[i]->getColour();
+		coneDir[i] = lightSources[i]->getConeDirection();
+		//Setting all the arrays with the lights data
 	}
-		glUniform1fv(glGetUniformLocation(m_shader->m_program,  "lightAmbientStrength"),lightSources.size(), ambient);
-		glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightSpecColor"),		lightSources.size(), glm::value_ptr(lightSources[0]->getSpecColor()));
-		glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightPosition"),		lightSources.size(), glm::value_ptr(lightSources[0]->getPosition()));
-		glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightColor"),			lightSources.size(), glm::value_ptr(lightSources[0]->getColour()));
-		glUniform1fv(glGetUniformLocation(m_shader->m_program,  "attenuation"),			lightSources.size(), attenuation);
-		glUniform1fv(glGetUniformLocation(m_shader->m_program,  "coneangle"),			lightSources.size(), coneangle);
-		glUniform3fv(glGetUniformLocation(m_shader->m_program, "coneDirection"),		lightSources.size(), glm::value_ptr(lightSources[0]->getConeDirection()));
-		glUniform1fv(glGetUniformLocation (m_shader->m_program, "specPower"),			lightSources.size(), specPower);
-		//camera
-		glUniform3fv(glGetUniformLocation(m_shader->m_program, "camPos"), 1, &camera->GetPos()[0]);
-		//water below
-		glUniform1f(glGetUniformLocation(m_shader->m_program,  "Time"), timePassed);
-		glUniform1f(glGetUniformLocation(m_shader->m_program,  "amplitude"), waterAmplitude);
-		glUniform1f(glGetUniformLocation(m_shader->m_program,  "frequency"), waterFrequency); 
-		glUniform1f(glGetUniformLocation(m_shader->m_program,  "speed"), waterSpeed);
+	//All data from the lights into the shader	
+	glUniform1fv(glGetUniformLocation(m_shader->m_program,  "lightAmbientStrength"),lightSources.size(), ambient);
+	glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightSpecColor"),		lightSources.size(), glm::value_ptr(specCol[0]));
+	glUniform4fv(glGetUniformLocation(m_shader->m_program, "lightPosition"),		lightSources.size(), glm::value_ptr(pos[0]));
+	glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightColor"),			lightSources.size(), glm::value_ptr(col[0]));
+	glUniform1fv(glGetUniformLocation(m_shader->m_program,  "attenuation"),			lightSources.size(), attenuation);
+	glUniform1fv(glGetUniformLocation(m_shader->m_program,  "coneangle"),			lightSources.size(), coneangle);
+	glUniform3fv(glGetUniformLocation(m_shader->m_program, "coneDirection"),		lightSources.size(), glm::value_ptr(coneDir[0]));
+	glUniform1fv(glGetUniformLocation (m_shader->m_program, "specPower"),			lightSources.size(), specPower);
+	//camera
+	glUniform3fv(glGetUniformLocation(m_shader->m_program, "camPos"), 1, &camera->GetPos()[0]);
+	//water below
+	glUniform1f(glGetUniformLocation(m_shader->m_program,  "Time"), timePassed);
+	glUniform1f(glGetUniformLocation(m_shader->m_program,  "amplitude"), waterAmplitude);
+	glUniform1f(glGetUniformLocation(m_shader->m_program,  "frequency"), waterFrequency); 
+	glUniform1f(glGetUniformLocation(m_shader->m_program,  "speed"), waterSpeed);
 	// When we setup the geometry, we did a bunch of glEnableVertexAttribArray and glVertexAttribPointer method calls
 	// we also Bound the vertex array and index array via the glBindBuffer call.
 	// if we where not using VAO's we would have to do thoes method calls each frame here.
@@ -263,7 +266,6 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 	// Step 4: Draw Elements. We are using GL_TRIANGLES.
 	// we need to tell openGL how many indices there are, and the size of our indices
 	// when we setup the geometry, our indices where an unsigned char (1 byte for each indicy)
-	//glDrawElements(GL_TRIANGLES, m_cubeIndicesCount, GL_UNSIGNED_BYTE, 0);
 	//---No longer drawing the indices...now drawing landscape---
 	glDrawElements(GL_TRIANGLES, m_IndicesCount, GL_UNSIGNED_INT, 0);
 	// Step 5: Now that we are done drawing the geometry
@@ -280,7 +282,7 @@ void HeightMap::DestroyHeightMap()
 {
 	for (int i = 0; i < NUM_ITEMS; i++)
 	{
-		delete m_textures[i];
+		delete m_textures[i];//delete all textures
 	}
 }
 

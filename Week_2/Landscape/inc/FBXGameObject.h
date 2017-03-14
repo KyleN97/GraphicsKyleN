@@ -12,11 +12,11 @@ public:
 	unsigned int vao;
 	unsigned int vbo;
 	unsigned int ibo;
-};
+};//Mesh that hold the Vertex array / buffer objects + index buffer objects
 class FBXGameObject
 {
 public:
-	FBXGameObject(const char* fileName,const char* shaderName, bool hasAnimations);
+	FBXGameObject(const char* fileName,const char* shaderName, bool hasAnimations);//Create the fbx animation and attach shader + if it has animations
 	~FBXGameObject();
 
 	void CreateFBXOpenGLBuffers(FBXFile *fbx);//Create the buffers for the model

@@ -37,66 +37,106 @@ using glm::vec3;
 using glm::vec4;
 using glm::mat4;
 using aie::Gizmos;
+LandscapeApp::LandscapeApp() {
 
-LandscapeApp::LandscapeApp()
-{
 }
+LandscapeApp::~LandscapeApp() {
 
-LandscapeApp::~LandscapeApp()
-{
 }
-
 bool LandscapeApp::startup() {
+	float atPercent = 0.0f;//For loading percent display
+	std::cout << "Loading... - " << atPercent * 10 << std::endl;
 
 	//---Setup camera starting position and where it's looking---
 	m_camera = new Camera(this);
 	m_camera->SetPosition(glm::vec3(5.0f, 5.0f, 5.0f));
 	m_camera->LookAt(glm::vec3(0.0f, 0.0f, 0.0f));
-
+	atPercent++;
+	std::cout << "Loading... - " << atPercent * 10 << std::endl;
 	//Create a light at a certain position and colour -  push it into a vector of lights
+
 	//---Point Light---//
-	//lightSources.push_back(new Light(glm::vec4(0.0f, 5.0f, 0.0f,1.0f), glm::vec3(1, 1, 1)));
-	//lightSources[0]->ambientIntensity = 0.5f;
+	lightSources.push_back(new Light(glm::vec4(0.0f, 5.0f, 0.0f,1.0f), glm::vec3(0, 1, 1)));
+	lightSources[0]->ambientIntensity = 0.5f;
+	lightSources[0]->SetAttenuation(1.0f);
+
+	atPercent++;
+	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+
 	//---Directional Light---//
 	lightSources.push_back(new Light(glm::vec4(0.0f, 10.0f, 0.0f, 0.0f), glm::vec3(1, 1, 1)));
-	lightSources[0]->SetAttenuation(1.0);
-	//---Point Light---//
-	lightSources.push_back(new Light(glm::vec4(0.0f,30.0f , 0.0f, 1.0f), glm::vec3(0, 1, 0)));
-	lightSources[1]->SetAttenuation(0.1f);
-	lightSources[1]->SetAmbient(0.0f);
-	lightSources[1]->SetConeAngle(15);
-	lightSources[1]->SetConeDirection(glm::vec3(0,0,-1));
+	lightSources[1]->SetAttenuation(1.0f);
+
+	atPercent++;
+	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+
+	//---Spot Light---//
+	lightSources.push_back(new Light(glm::vec4(0.0f,30.0f , 0.0f, 2.0f), glm::vec3(0, 1, 0)));
+	lightSources[2]->SetAttenuation(0.1f);
+	lightSources[2]->SetAmbient(0.5f);
+	lightSources[2]->SetConeAngle(15);
+	lightSources[2]->SetConeDirection(glm::vec3(0, 0, -1));
+
+	atPercent++;
+	std::cout << "Loading... - " << atPercent * 10 << std::endl;
 
 	//Create a gameModel and push it into a vector
 	gameModels.push_back(new FBXGameObject("Landscape/models/pyro/pyro.fbx","Landscape/Shaders/fbxAnimatedShader",true));
-	//Give this certain object a scale
-	gameModels[0]->Scale(glm::vec3(0.001f, 0.001f, 0.001f));
-	//Moves this object to a certain posotion
-	gameModels[0]->Translate(glm::vec3(0, 1, 0));
+	gameModels[0]->Scale(glm::vec3(0.001f, 0.001f, 0.001f));//Give this certain object a scale
+	gameModels[0]->Translate(glm::vec3(0, 1, 0));//Moves this object to a certain position
+
+	atPercent++;
+	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+		
 	gameModels.push_back(new FBXGameObject("Landscape/models/soulspear/soulspear.fbx", "Landscape/Shaders/fbxShader", false));
+
+	atPercent++;
+	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+
 	//Create an emitter and push it into a vector
 	m_emitter.push_back(new ParticleEmitter("Landscape/Shaders/particleShader"));
 	m_emitter[0]->Init(100000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 1, 0, 1), glm::vec4(0, 0, 0, 1), glm::vec3(10, 2, 2));
-	//Create an Object Creator
-	ObjectCreator = new GameObject();
-	//Create a Post Processor
-	postProcessor = new PostProcessor();
+
+	atPercent++;
+	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+
+	ObjectCreator = new GameObject();//Create an Object Creator
+
+	atPercent++;
+	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+	
+	postProcessor = new PostProcessor();//Create a Post Processor
+
+	atPercent++;
+	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+
 	//Setting the background colour of the scene
 	setBackgroundColour(0.25f, 0.25f, 0.25f);
 
 	//---initialize gizmo primitive counts---
 	Gizmos::create(10000, 10000, 10000, 10000);
+
+	atPercent++;
+	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+
 	m_positions[0] = glm::vec3(10, 5, 10);
 	m_positions[1] = glm::vec3(-10, 0, -10);
 	m_rotations[0] = glm::quat(glm::vec3(0,-1, 0));
 	m_rotations[1] = glm::quat(glm::vec3(0, 1, 0));
-	////Setup the Frame Buffer and Quad for the window
+	//Setup default postion and rotation for the obejct using quarts
+
+	//Setup the Frame Buffer and Quad for the window
 	postProcessor->SetupFrameBuffer(getWindowHeight(),getWindowWidth());
 	postProcessor->SetupFrameQuad  (getWindowHeight(),getWindowWidth());
-	//---Create the heightmap---
-	heightMap = new HeightMap();
+	
+	heightMap = new HeightMap();//---Create the heightmap---
+
+	atPercent++;
+	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	return true;
 }
 
@@ -120,32 +160,47 @@ void LandscapeApp::shutdown() {
 
 void LandscapeApp::update(float deltaTime) {
 	Gizmos::clear();
+
 	// query time since application started
 	float time = getTime();
 	heightMap->timePassed = time;
-	static float wrap_width = 200.0f;
-	//Update the camera
-	m_camera->Update(deltaTime);
-	//Turn on/off wireframe if enabled
+
+	m_camera->Update(deltaTime);//Update the camera
+	
 	if (m_isWireframe)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	else
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	//Turn on/off wireframe if enabled
+
 	for (int i = 0; i < lightSources.size(); ++i)
 	{
-		std::string lightEditor = "Light : " + std::to_string(i) + " Editor";
+		std::string lightEditor;
+		switch (i)
+		{
+		case 0:
+			lightEditor = "Point Light Editor";
+			break;
+		case 1:
+			lightEditor = "Directional Light Editor";
+			break;
+		case 2:
+			lightEditor = "Spot Light Editor";
+			break;
+		}
 		ImGui::Begin(lightEditor.c_str());
 		ImGui::SliderFloat("Ambient Strength", &lightSources[i]->ambientIntensity, 0, 10);
 		ImGui::SliderFloat("Specular Strength", &lightSources[i]->SpecIntensity, 0, 10000);
 		ImGui::ColorEdit3("Light Color", glm::value_ptr(lightSources[i]->colour));
 		ImGui::ColorEdit3("Spec Light Color", glm::value_ptr(lightSources[i]->specColor));
 		ImGui::End();
-	}
+	}//Draw the light UI/Editor for each light
 
 	
 	ImGui::Begin("Landscape Editor");
 	ImGui::Checkbox("WireFrame", &m_isWireframe);
 	ImGui::End();
+	//Draw the Wireframe toggle UI
 
 	//Draw the Object Creator UI
 	ObjectCreator->DrawUI();
@@ -165,21 +220,20 @@ void LandscapeApp::update(float deltaTime) {
 
 	//Draw the Post Process UI
 	postProcessor->DrawPostProcessUI();
-	lightSources[1]->SetPosition(glm::vec4(m_camera->GetPos(),1));
-	lightSources[1]->SetConeDirection(m_camera->m_cameraLook);
+	lightSources[2]->SetPosition(glm::vec4(m_camera->GetPos(),1));
+	lightSources[2]->SetConeDirection(m_camera->m_cameraLook);
 
 
 	for (auto& member : m_emitter){
 		member->Update(deltaTime, m_camera->GetView(), m_camera->GetPos());
-	}
+	}//Update each emmiter
 	for (auto& element :gameModels){
 		element->Update(deltaTime, getTime());
 		element->DrawUI(deltaTime);
-	}
+	}//Update each game model
 	for (auto& element : ObjectCreator->gameObjects){
 		element->Update(deltaTime);
-	}
-	//Call update and Draw for the emitters,models and the object creator
+	}//Update each gameobject
 
 	float s = glm::cos(time) * 0.5f  + 0.5f;
 	glm::vec3 p = (1.0f - s) * m_positions[0] + s * m_positions[1];
@@ -187,12 +241,13 @@ void LandscapeApp::update(float deltaTime) {
 	gameModels[1]->SlerpTo(p, r);
 	//Slerping a game model between two points
 	const mat4 sphereMat = glm::translate(glm::vec3(vec3(glm::cos(time * 0.5) * 30, 25, glm::sin(time * 0.5) * 30)));//translate the sphere in an orbit 3 wide and 3 high
+	
 	Gizmos::addSphere(cullingObjectPosition,cullingObjectRadius, 32, 32, glm::vec4(0, 1, 1, 1));//culling test object
 	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 12, vec4(1, 0, 0, 0.5f), &sphereMat);
-	//Adding a sphere into the scene and rotation in a circle which will be the lights postion
-	//lightSources[1]->SetPosition(sphereMat[3].xyzw);
-
 	
+	//Adding a sphere into the scene and rotation in a circle which will be the lights postion
+	lightSources[0]->SetPosition(glm::vec4(sphereMat[3].xyz,1));
+
 	//Draw a Grid
 	//DrawGrid();
 	
@@ -219,19 +274,18 @@ void LandscapeApp::DrawGrid()
 }
 
 void LandscapeApp::draw() {
-	//Init the Post Processor
-	postProcessor->InitDrawPostProcess(postProcessor->m_enablePostProcess, getWindowWidth(), getWindowHeight());
-	std::cout << getWindowHeight() << std::endl;
-	std::cout << getWindowWidth() << std::endl;
-	// wipe the screen to the background colour
-	clearScreen();
-	glPolygonMode(GL_FRONT_AND_BACK,GL_FRONT);
-	Gizmos::draw(m_camera->GetProjection() * m_camera->GetView());
-	// update perspective in case window resized
+	postProcessor->InitDrawPostProcess(postProcessor->m_enablePostProcess, getWindowWidth(), getWindowHeight());//Init the Post Processor
 	
-	glm::mat4 projectionView = m_camera->GetProjection() * m_camera->GetView();
-	//Draw the heightmap
-	heightMap->DrawHeightMap(projectionView, lightSources, m_camera);
+	clearScreen();// wipe the screen to the background colour
+
+	glPolygonMode(GL_FRONT_AND_BACK,GL_FRONT);
+
+	Gizmos::draw(m_camera->GetProjection() * m_camera->GetView());// update perspective in case window resized
+	
+	glm::mat4 projectionView = m_camera->GetProjection() * m_camera->GetView();//Setting up the projection view
+	
+	heightMap->DrawHeightMap(projectionView, lightSources, m_camera);//Draw the heightmap
+
 	for (auto& member : gameModels)
 	{
 		member->Draw(projectionView,lightSources,m_camera);
@@ -240,13 +294,14 @@ void LandscapeApp::draw() {
 	{
 		member->Draw(projectionView);
 	}//Draw all emmitters
-	//Draw the game models and emitter
 
-	ObjectCreator->DrawAll(projectionView);
+	ObjectCreator->DrawAll(projectionView);//Draw all objects
+
 	ImGui::Begin("Frustrum Culling");
 	bool vis = m_camera->getFrustrumPlanes(projectionView, cullingObjectPosition.x,cullingObjectPosition.y,cullingObjectPosition.z,cullingObjectRadius);
 	ImGui::Checkbox("Is culling object Visible: ", &vis);
 	ImGui::End();
-	//Draw the Post Processor
-	postProcessor->DrawPostProcess(postProcessor->m_enablePostProcess, getWindowWidth(), getWindowHeight());
+	//Drawing the Frustrum Culling checker UI
+	
+	postProcessor->DrawPostProcess(postProcessor->m_enablePostProcess, getWindowWidth(), getWindowHeight());//Draw the Post Processor
 }

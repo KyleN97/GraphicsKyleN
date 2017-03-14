@@ -18,18 +18,18 @@ class LandscapeApp : public aie::Application {
 public:
 
 	LandscapeApp();
+
 	virtual ~LandscapeApp();
 
-	virtual bool startup();
-	virtual void shutdown();
+	virtual bool startup();//On startup
 
-	virtual void update(float deltaTime);
-	virtual void draw();
+	virtual void shutdown();//Omn shutdown
 
-	void DrawGrid();
+	virtual void update(float deltaTime);//On update
+	
+	virtual void draw();//On draw
 
-	/*void DestroyCube();*/
-
+	void DrawGrid();//Draw a grid within the world
 
 protected:
 	Camera* m_camera;//Camera
@@ -42,10 +42,10 @@ protected:
 
 	glm::vec3 m_positions[2];
 	glm::quat m_rotations[2];
-	//Slerping an object usign quarts
+	//Slerping an object using quarts
 
 	//culling test
-	glm::vec3 cullingObjectPosition = glm::vec3(5,5,5);
+	glm::vec3 cullingObjectPosition = glm::vec3(5,10,5);
 	float cullingObjectRadius = 1.5;
 
 	//Wether we are rendering wireframe or not
