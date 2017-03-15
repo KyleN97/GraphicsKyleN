@@ -14,6 +14,7 @@ class PostProcessor;
 class GameObject;
 class FBXGameObject;
 class HeightMap;
+class DeferredRenderer;
 class LandscapeApp : public aie::Application {
 public:
 
@@ -36,6 +37,7 @@ protected:
 	HeightMap* heightMap;//Heightmap
 	PostProcessor* postProcessor;//Post Processor
 	GameObject* ObjectCreator;//Object Creator
+	DeferredRenderer* d_Renderer;//Deffered Renderer
 	std::vector<FBXGameObject*> gameModels;//Game Models
 	std::vector<ParticleEmitter*> m_emitter;//Particles
 	std::vector<Light*> lightSources;//Lights

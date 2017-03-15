@@ -27,6 +27,7 @@ STEP 4: Unload Shader and Geometry
 #include "gl_core_4_4.h"
 #include "Shader.h"
 #include "Light.h"
+#include "DeferredRenderer.h"
 #include "ParticleEmitter.h"
 #include "PostProcessor.h"
 #include "GameObject.h"
@@ -130,9 +131,9 @@ bool LandscapeApp::startup() {
 	postProcessor->SetupFrameQuad  (getWindowHeight(),getWindowWidth());
 	
 	heightMap = new HeightMap();//---Create the heightmap---
-
-	atPercent++;
-	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+	d_Renderer = new DeferredRenderer();//---Create the Deffered Rendere---
+	d_Renderer->CreateGPassBuffer(getWindowWidth(), getWindowHeight());
+	d_Renderer->CreateLightBuffer(getWindowWidth(), getWindowHeight());
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

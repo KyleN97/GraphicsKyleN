@@ -1,0 +1,17 @@
+// VERTEX SHADER – G-PASS
+ #version 410
+layout(location = 0) in vec4 Position;
+layout(location = 1) in vec4 Normal; 
+// view-space normal and position out
+vec4 vPosition;
+out vec4 vNormal;
+uniform mat4 view; // needed in addition to Projection * View 
+uniform mat4 projectionView; 
+
+void main()
+{ 
+    // first store view-space position and normal
+    vPosition = view * Position;
+    vNormal = normalize(view * Normal);
+    gl_Position = projectionView * Position;
+}
