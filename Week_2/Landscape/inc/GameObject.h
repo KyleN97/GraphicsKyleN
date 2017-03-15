@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include "Shader.h"
+#include "Light.h"
+#include "Camera.h"
 #include <Texture.h>
 class Object
 {
@@ -35,8 +37,8 @@ public:
 	void Create();//Create an object
 	void DrawUI();//Draw the ui for object creation
 	void CreateCube(glm::vec3 scale);//Create aqcube
-	void DrawCube(glm::mat4 projectionView);//Draw a cube
-	void DrawAll(glm::mat4 projectionView);//Draw all objects
+	void DrawCube(glm::mat4 projectionView,std::vector<Light*> lightSources,Camera* m_camera);//Draw a cube
+	void DrawAll(glm::mat4 projectionView, std::vector<Light*> lightSources, Camera* m_camera);//Draw all objects
 
 	std::vector<Object*> gameObjects;//All gameobjects
 

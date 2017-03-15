@@ -57,7 +57,7 @@ bool LandscapeApp::startup() {
 	//Create a light at a certain position and colour -  push it into a vector of lights
 
 	//---Point Light---//
-	lightSources.push_back(new Light(glm::vec4(0.0f, 5.0f, 0.0f,1.0f), glm::vec3(0, 1, 1)));
+	lightSources.push_back(new Light(glm::vec4(0.0f, 5.0f, 0.0f,1.0f), glm::vec3(0, 1, 1),1));
 	lightSources[0]->ambientIntensity = 0.5f;
 	lightSources[0]->SetAttenuation(1.0f);
 
@@ -65,17 +65,17 @@ bool LandscapeApp::startup() {
 	std::cout << "Loading... - " << atPercent * 10 << std::endl;
 
 	//---Directional Light---//
-	lightSources.push_back(new Light(glm::vec4(0.0f, 10.0f, 0.0f, 0.0f), glm::vec3(1, 1, 1)));
+	lightSources.push_back(new Light(glm::vec4(0.0f, 10.0f, 0.0f, 1.0f), glm::vec3(1, 1, 1),0));
 	lightSources[1]->SetAttenuation(1.0f);
 
 	atPercent++;
 	std::cout << "Loading... - " << atPercent * 10 << std::endl;
 
 	//---Spot Light---//
-	lightSources.push_back(new Light(glm::vec4(0.0f,30.0f , 0.0f, 2.0f), glm::vec3(0, 1, 0)));
+	lightSources.push_back(new Light(glm::vec4(0.0f,30.0f , 0.0f, 1.0f), glm::vec3(0, 1, 0),2));
 	lightSources[2]->SetAttenuation(0.1f);
 	lightSources[2]->SetAmbient(0.5f);
-	lightSources[2]->SetConeAngle(15);
+	lightSources[2]->SetConeAngle(15.0f);
 	lightSources[2]->SetConeDirection(glm::vec3(0, 0, -1));
 
 	atPercent++;
@@ -131,9 +131,9 @@ bool LandscapeApp::startup() {
 	postProcessor->SetupFrameQuad  (getWindowHeight(),getWindowWidth());
 	
 	heightMap = new HeightMap();//---Create the heightmap---
-	d_Renderer = new DeferredRenderer();//---Create the Deffered Rendere---
-	d_Renderer->CreateGPassBuffer(getWindowWidth(), getWindowHeight());
-	d_Renderer->CreateLightBuffer(getWindowWidth(), getWindowHeight());
+	//d_Renderer = new DeferredRenderer();//---Create the Deffered Rendere---
+	//d_Renderer->CreateGPassBuffer(getWindowWidth(), getWindowHeight());
+	//d_Renderer->CreateLightBuffer(getWindowWidth(), getWindowHeight());
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -216,6 +216,9 @@ void LandscapeApp::update(float deltaTime) {
 	ImGui::Text(glm::to_string(m_camera->GetPos()).c_str());
 	ImGui::Text("Light Position");
 	ImGui::Text(glm::to_string(lightSources[0]->getPosition()).c_str());
+	ImGui::Text(glm::to_string(lightSources[1]->getPosition()).c_str());
+	ImGui::Text(glm::to_string(lightSources[2]->getPosition()).c_str());
+
 	ImGui::End();
 	//Drawing UI
 
@@ -296,7 +299,7 @@ void LandscapeApp::draw() {
 		member->Draw(projectionView);
 	}//Draw all emmitters
 
-	ObjectCreator->DrawAll(projectionView);//Draw all objects
+	ObjectCreator->DrawAll(projectionView,lightSources,m_camera);//Draw all objects
 
 	ImGui::Begin("Frustrum Culling");
 	bool vis = m_camera->getFrustrumPlanes(projectionView, cullingObjectPosition.x,cullingObjectPosition.y,cullingObjectPosition.z,cullingObjectRadius);

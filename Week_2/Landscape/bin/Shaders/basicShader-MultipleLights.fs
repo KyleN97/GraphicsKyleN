@@ -17,6 +17,7 @@ uniform float[3] attenuation;
 uniform float[3] coneangle;
 uniform vec3 [3] coneDirection;	
 uniform float[3] specPower;
+uniform int[3] lightType;
 uniform vec3 camPos;
 uniform float blend = 50.0f;
 const float texSize = 10.0f;
@@ -28,12 +29,17 @@ void main ()
 	vec3 finalLighting = vec3(0,0,0);	
 	for(int i = 0; i < 3; i++){
 		float attenuationFactor = 1.0;
-		if(lightPosition[i].w  == 0){
+		if(lightType[i]  == 0){
 			lightDir = normalize(lightPosition[i].xyz);
 			attenuationFactor = 1.0;
 			//Directional Light
 		}
-		else if (lightPosition[i].w == 2){
+		if(lightType[i] == 1){
+			//Point Light
+			lightDir = normalize(lightPosition[i].xyz - fPos);
+			attenuationFactor = 1.0;
+		}
+		if (lightType[i] == 2){
 			lightDir = normalize(lightPosition[i].xyz - fPos);
 			float distanceToLight = length(lightPosition[i].xyz - fPos);
 			lightDir = normalize(lightPosition[i].xyz - fPos);				 
@@ -44,11 +50,7 @@ void main ()
 			}
 			//Spot Light
 		}
-		else if(lightPosition[i].w == 1){
-			//Point Light
-			lightDir = normalize(lightPosition[i].xyz - fPos);
-			attenuationFactor = 1.0;
-		}
+
 		
 		vec3 norm 	= normalize(fNormal.xyz);		
 		float diff 	= max(dot(norm, lightDir), 0.0);

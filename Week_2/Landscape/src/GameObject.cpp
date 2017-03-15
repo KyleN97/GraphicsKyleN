@@ -144,10 +144,37 @@ void GameObject::CreateCube(glm::vec3 scale)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void GameObject::DrawCube(glm::mat4 projectionView)
+void GameObject::DrawCube(glm::mat4 projectionView,std::vector<Light*> lightSources, Camera* m_camera)
 {
 	for (int i = 0; i < amountOfObjects; i++) {
-
+		//GLfloat *ambient, *attenuation, *coneangle, *specPower;
+		//glm::vec3 * specCol, *col, *coneDir;
+		//glm::vec4* pos;
+		//GLint* typeOfLight;
+		////Gettting all the stats from the lights and storing them within pointer arrays to pass to shader
+		//specCol = new glm::vec3[lightSources.size()];//Specular Colour of the light
+		//pos = new glm::vec4[lightSources.size()];//Position of the light
+		//col = new glm::vec3[lightSources.size()];//Colour of the light
+		//coneDir = new glm::vec3[lightSources.size()];//Cone Direction of the spot light
+		//ambient = new GLfloat[lightSources.size()];//Ambient of the light
+		//attenuation = new GLfloat[lightSources.size()];//Attenuation of the light
+		//coneangle = new GLfloat[lightSources.size()];//Angle of the cone for spot light
+		//specPower = new GLfloat[lightSources.size()];//specular 
+		//											 //power of the light
+		//typeOfLight = new GLint[lightSources.size()];
+		//for (int i = 0; i < lightSources.size(); i++)
+		//{
+		//	ambient[i] = lightSources[i]->getAmbientIntensity();
+		//	attenuation[i] = lightSources[i]->getAttenuation();
+		//	coneangle[i] = lightSources[i]->getConeAngle();
+		//	specPower[i] = lightSources[i]->getSpecIntensity();
+		//	specCol[i] = lightSources[i]->getSpecColor();
+		//	pos[i] = lightSources[i]->getPosition();
+		//	col[i] = lightSources[i]->getColour();
+		//	coneDir[i] = lightSources[i]->getConeDirection();
+		//	typeOfLight[i] = lightSources[i]->getLightType();
+		//	//Setting all the arrays with the lights data
+		//}
 		// Ask openGL to use our shader program
 		glUseProgram(objectShaders[i]->m_program);
 
@@ -155,6 +182,17 @@ void GameObject::DrawCube(glm::mat4 projectionView)
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, objectTextures[i]->getHandle());
 		glUniform1i(glGetUniformLocation(objectShaders[i]->m_program, "texture"), 0);
+		////***Pass in the lightsources vector and setup arrays and pass to shader for multiple light support on fbx models***///	
+		//glUniform1fv(glGetUniformLocation(objectShaders[i]->m_program, "lightAmbientStrength"), lightSources.size(), ambient);
+		//glUniform3fv(glGetUniformLocation(objectShaders[i]->m_program, "lightSpecColor"), lightSources.size(), glm::value_ptr(specCol[0]));
+		//glUniform4fv(glGetUniformLocation(objectShaders[i]->m_program, "lightPosition"), lightSources.size(), glm::value_ptr(pos[0]));
+		//glUniform3fv(glGetUniformLocation(objectShaders[i]->m_program, "lightColor"), lightSources.size(), glm::value_ptr(col[0]));
+		//glUniform1fv(glGetUniformLocation(objectShaders[i]->m_program, "attenuation"), lightSources.size(), attenuation);
+		//glUniform1fv(glGetUniformLocation(objectShaders[i]->m_program, "coneangle"), lightSources.size(), coneangle);
+		//glUniform3fv(glGetUniformLocation(objectShaders[i]->m_program, "coneDirection"), lightSources.size(), glm::value_ptr(coneDir[0]));
+		//glUniform1fv(glGetUniformLocation(objectShaders[i]->m_program, "specPower"), lightSources.size(), specPower);
+		//glUniform1iv(glGetUniformLocation(objectShaders[i]->m_program, "lightType"), lightSources.size(), typeOfLight);
+		//glUniform3fv(glGetUniformLocation(objectShaders[i]->m_program, "camPos"), 1, &m_camera->GetPos()[0]);
 		//Pass in the projection view and texture to the shader
 
 		// Bind VAO
@@ -171,13 +209,13 @@ void GameObject::DrawCube(glm::mat4 projectionView)
 	}
 }
 
-void GameObject::DrawAll(glm::mat4 projectionView)
+void GameObject::DrawAll(glm::mat4 projectionView,std::vector<Light*> lightSources,Camera* m_camera)
 {
 	for (int i = 0;i < amountOfObjects;i++)
 	{
 		if (gameObjects[i]->objectType == "AABBFilled")
 		{
-			DrawCube(projectionView);
+			DrawCube(projectionView,lightSources,m_camera);
 		}//for each cube in the gameobjects, draw it
 
 	}//Draw all gameobjects

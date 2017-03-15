@@ -221,6 +221,7 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 	GLfloat *ambient,*attenuation,*coneangle,*specPower;
 	glm::vec3 * specCol,*col, *coneDir;
 	glm::vec4* pos;
+	GLint* typeOfLight;
 	//Gettting all the stats from the lights and storing them within pointer arrays to pass to shader
 	specCol = new glm::vec3[lightSources.size()];//Specular Colour of the light
 	pos = new glm::vec4[lightSources.size()];//Position of the light
@@ -229,8 +230,9 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 	ambient = new GLfloat[lightSources.size()];//Ambient of the light
 	attenuation = new GLfloat[lightSources.size()];//Attenuation of the light
 	coneangle = new GLfloat[lightSources.size()];//Angle of the cone for spot light
-	specPower = new GLfloat[lightSources.size()];//specular power of the light
-
+	specPower = new GLfloat[lightSources.size()];//specular 
+	//power of the light
+	typeOfLight = new GLint[lightSources.size()];
 	for (int i = 0; i < lightSources.size(); i++)
 	{
 		ambient[i] = lightSources[i]->getAmbientIntensity();
@@ -241,8 +243,10 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 		pos[i] = lightSources[i]->getPosition();
 		col[i] = lightSources[i]->getColour();
 		coneDir[i] = lightSources[i]->getConeDirection();
+		typeOfLight[i] = lightSources[i]->getLightType();
 		//Setting all the arrays with the lights data
 	}
+
 	//All data from the lights into the shader	
 	glUniform1fv(glGetUniformLocation(m_shader->m_program,  "lightAmbientStrength"),lightSources.size(), ambient);
 	glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightSpecColor"),		lightSources.size(), glm::value_ptr(specCol[0]));
@@ -251,7 +255,8 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> ligh
 	glUniform1fv(glGetUniformLocation(m_shader->m_program,  "attenuation"),			lightSources.size(), attenuation);
 	glUniform1fv(glGetUniformLocation(m_shader->m_program,  "coneangle"),			lightSources.size(), coneangle);
 	glUniform3fv(glGetUniformLocation(m_shader->m_program, "coneDirection"),		lightSources.size(), glm::value_ptr(coneDir[0]));
-	glUniform1fv(glGetUniformLocation (m_shader->m_program, "specPower"),			lightSources.size(), specPower);
+	glUniform1fv(glGetUniformLocation(m_shader->m_program, "specPower"),			lightSources.size(), specPower);
+	glUniform1iv(glGetUniformLocation(m_shader->m_program, "lightType"),			lightSources.size(), typeOfLight);
 	//camera
 	glUniform3fv(glGetUniformLocation(m_shader->m_program, "camPos"), 1, &camera->GetPos()[0]);
 	//water below

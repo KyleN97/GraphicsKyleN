@@ -4,16 +4,25 @@
 class Light
 {
 public:
-	Light(glm::vec4 pos, glm::vec3 col) {
+	Light(glm::vec4 pos, glm::vec3 col,int type) {
 		this->position = pos;
 		this->colour = col;
 		this->specColor = col;
+		this->typeOfLight = type;
 	}
 	~Light() {
 
 	}
 	glm::vec4 getPosition() {
 		return this->position;
+	}
+	int getLightType()
+	{
+		return this->typeOfLight;
+	}
+	int setLightType(int type)
+	{
+		this->typeOfLight = type;
 	}
 	void SetAmbient(float amount) {
 		this->ambientIntensity = amount;
@@ -66,6 +75,7 @@ public:
 	float SpecIntensity = 32.0f;
 	float ambientIntensity = 1.0f;
 private:
+	int typeOfLight = 0;
 	float attenuation = 1.0f;
 	float coneAngle = 0.0f;
 	glm::vec3 coneDirection = glm::vec3(0, 0, -1);
