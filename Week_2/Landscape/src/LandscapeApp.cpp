@@ -132,9 +132,6 @@ bool LandscapeApp::startup() {
 	postProcessor->SetupFrameBuffer(getWindowHeight(),getWindowWidth());
 	postProcessor->SetupFrameQuad  (getWindowHeight(),getWindowWidth());
 	heightMap = new HeightMap();//---Create the heightmap---
-	//d_Renderer = new DeferredRenderer();//---Create the Deffered Rendere---
-	//d_Renderer->CreateGPassBuffer(getWindowWidth(), getWindowHeight());
-	//d_Renderer->CreateLightBuffer(getWindowWidth(), getWindowHeight());
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -306,9 +303,10 @@ void LandscapeApp::draw() {
 	ObjectCreator->DrawAll(projectionView, gameLightManager->worldLights,m_camera);//Draw all objects
 
 	ImGui::Begin("Frustrum Culling");
+
 	bool vis = m_camera->getFrustrumPlanes(projectionView, cullingObjectPosition.x,cullingObjectPosition.y,cullingObjectPosition.z,cullingObjectRadius);
 	ImGui::Checkbox("Is culling object Visible: ", &vis);
 	ImGui::End();
+
 	postProcessor->DrawPostProcess(postProcessor->m_enablePostProcess, getWindowWidth(), getWindowHeight());//Draw the Post Processor
-	//d_Renderer->Render(m_camera);
 }
