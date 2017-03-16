@@ -171,7 +171,7 @@ void FBXGameObject::Update(float d_time, float anim_Timer)
 	}
 }
 
-void FBXGameObject::Draw(glm::mat4 projectionView, std::vector<Light*>lightSources, Camera* m_camera)
+void FBXGameObject::Draw(glm::mat4 projectionView, Camera* m_camera, LightManager* gameLightManager)
 {
 
 		//FBX - START
@@ -205,46 +205,17 @@ void FBXGameObject::Draw(glm::mat4 projectionView, std::vector<Light*>lightSourc
 				glBindTexture(GL_TEXTURE_2D, diffuseTexture);
 			}
 			// bind the texture and send it to our shader
-			GLfloat *ambient, *attenuation, *coneangle, *specPower;
-			glm::vec3 * specCol, *col, *coneDir;
-			glm::vec4* pos;
-			GLint* typeOfLight;
-			//Gettting all the stats from the lights and storing them within pointer arrays to pass to shader
-			specCol = new glm::vec3[lightSources.size()];//Specular Colour of the light
-			pos = new glm::vec4[lightSources.size()];//Position of the light
-			col = new glm::vec3[lightSources.size()];//Colour of the light
-			coneDir = new glm::vec3[lightSources.size()];//Cone Direction of the spot light
-			ambient = new GLfloat[lightSources.size()];//Ambient of the light
-			attenuation = new GLfloat[lightSources.size()];//Attenuation of the light
-			coneangle = new GLfloat[lightSources.size()];//Angle of the cone for spot light
-			specPower = new GLfloat[lightSources.size()];//specular 
-														 //power of the light
-			typeOfLight = new GLint[lightSources.size()];
-			for (int i = 0; i < lightSources.size(); i++)
-			{
-				ambient[i] = lightSources[i]->getAmbientIntensity();
-				attenuation[i] = lightSources[i]->getAttenuation();
-				coneangle[i] = lightSources[i]->getConeAngle();
-				specPower[i] = lightSources[i]->getSpecIntensity();
-				specCol[i] = lightSources[i]->getSpecColor();
-				pos[i] = lightSources[i]->getPosition();
-				col[i] = lightSources[i]->getColour();
-				coneDir[i] = lightSources[i]->getConeDirection();
-				typeOfLight[i] = lightSources[i]->getLightType();
-				//Setting all the arrays with the lights data
-			}
-	//***Pass in the lightsources vector and setup arrays and pass to shader for multiple light support on fbx models***///	
 			glUniform1i(glGetUniformLocation(m_shader->m_program, "diffuseTexture"), 0);
-			glUniform1fv(glGetUniformLocation(m_shader->m_program, "lightAmbientStrength"), lightSources.size(), ambient);
-			glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightSpecColor"), lightSources.size(), glm::value_ptr(specCol[0]));
-			glUniform4fv(glGetUniformLocation(m_shader->m_program, "lightPosition"), lightSources.size(), glm::value_ptr(pos[0]));
-			glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightColor"), lightSources.size(), glm::value_ptr(col[0]));
-			glUniform1fv(glGetUniformLocation(m_shader->m_program, "attenuation"), lightSources.size(), attenuation);
-			glUniform1fv(glGetUniformLocation(m_shader->m_program, "coneangle"), lightSources.size(), coneangle);
-			glUniform3fv(glGetUniformLocation(m_shader->m_program, "coneDirection"), lightSources.size(), glm::value_ptr(coneDir[0]));
-			glUniform1fv(glGetUniformLocation(m_shader->m_program, "specPower"), lightSources.size(), specPower);
-			glUniform1iv(glGetUniformLocation(m_shader->m_program, "lightType"), lightSources.size(), typeOfLight);
-			glUniform3fv(glGetUniformLocation(m_shader->m_program, "camPos"), 1,			  &m_camera->GetPos()[0]);
+			glUniform1fv(glGetUniformLocation(m_shader->m_program, "lightAmbientStrength"), gameLightManager->worldLights.size(), gameLightManager->GLambient);
+			glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightSpecColor"),		gameLightManager->worldLights.size(), glm::value_ptr(gameLightManager->GLspecCol[0]));
+			glUniform4fv(glGetUniformLocation(m_shader->m_program, "lightPosition"),		gameLightManager->worldLights.size(), glm::value_ptr(gameLightManager->GLpos[0]));
+			glUniform3fv(glGetUniformLocation(m_shader->m_program, "lightColor"),			gameLightManager->worldLights.size(), glm::value_ptr(gameLightManager->GLcol[0]));
+			glUniform1fv(glGetUniformLocation(m_shader->m_program, "attenuation"),			gameLightManager->worldLights.size(), gameLightManager->GLattenuation);
+			glUniform1fv(glGetUniformLocation(m_shader->m_program, "coneangle"),			gameLightManager->worldLights.size(), gameLightManager->GLconeangle);
+			glUniform3fv(glGetUniformLocation(m_shader->m_program, "coneDirection"),		gameLightManager->worldLights.size(), glm::value_ptr(gameLightManager->GLconeDir[0]));
+			glUniform1fv(glGetUniformLocation(m_shader->m_program, "specPower"),			gameLightManager->worldLights.size(), gameLightManager->GLspecPower);
+			glUniform1iv(glGetUniformLocation(m_shader->m_program, "lightType"),			gameLightManager->worldLights.size(), gameLightManager->GLtypeOfLight);
+			glUniform3fv(glGetUniformLocation(m_shader->m_program, "camPos"), 1,			&m_camera->GetPos()[0]);
 			//Pass through all lighting data,cam pos and diffuse and light the model accordingly.
 
 			// draw the mesh

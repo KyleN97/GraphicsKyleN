@@ -4,7 +4,7 @@
 
 Shader::Shader(const std::string & fileName)
 {
- 	m_program = glCreateProgram();
+	m_program = glCreateProgram();
 	m_shaders[0] = CreateShader(LoadShader(fileName + ".vs"), GL_VERTEX_SHADER);
 	m_shaders[1] = CreateShader(LoadShader(fileName + ".fs"), GL_FRAGMENT_SHADER);
 	//Create a vertex and frag shader
@@ -21,7 +21,6 @@ Shader::Shader(const std::string & fileName)
 
 	//Link + Validate whilst checking for errors
 }
-
 Shader::~Shader()
 {
 	for (unsigned int i = 0; i < NUM_SHADER; i++)

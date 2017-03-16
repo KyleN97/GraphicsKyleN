@@ -29,7 +29,7 @@ public:
 
 	void Update(float d_time,float anim_Timer);//Update the model
 
-	void Draw(glm::mat4 projectionView,std::vector<Light*>lightSources,Camera* m_camera);//Draw the model
+	void Draw(glm::mat4 projectionView,Camera* m_camera,LightManager* gameLightManager);//Draw the model
 
 	void DrawUI(float d_time);//Draw the UI
 

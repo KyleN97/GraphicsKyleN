@@ -16,7 +16,7 @@ public:
 	~HeightMap();
 
 	void CreateHeightMap();//Creates the heightmap
-	void DrawHeightMap(glm::mat4 projectionView, std::vector<Light*> lightSources, Camera* camera);//Draws the heightmap
+	void DrawHeightMap(glm::mat4 projectionView,Camera* camera, LightManager* gameLightManager);//Draws the heightmap
 	void DestroyHeightMap();//Destroy the heightmap
 	float timePassed;//Total time is used for the water shader
 private:

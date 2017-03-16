@@ -39,11 +39,13 @@ using glm::vec4;
 using glm::mat4;
 using aie::Gizmos;
 LandscapeApp::LandscapeApp() {
-
+	
 }
+
 LandscapeApp::~LandscapeApp() {
 
 }
+
 bool LandscapeApp::startup() {
 	float atPercent = 0.0f;//For loading percent display
 	std::cout << "Loading... - " << atPercent * 10 << std::endl;
@@ -55,28 +57,28 @@ bool LandscapeApp::startup() {
 	atPercent++;
 	std::cout << "Loading... - " << atPercent * 10 << std::endl;
 	//Create a light at a certain position and colour -  push it into a vector of lights
-
+	gameLightManager = new LightManager();//Create a game light manager
 	//---Point Light---//
-	lightSources.push_back(new Light(glm::vec4(0.0f, 5.0f, 0.0f,1.0f), glm::vec3(0, 1, 1),1));
-	lightSources[0]->ambientIntensity = 0.5f;
-	lightSources[0]->SetAttenuation(1.0f);
+	gameLightManager->CreateLight(glm::vec4(0.0f, 5.0f, 0.0f, 1.0f), glm::vec3(0, 1, 1), 1);
+	gameLightManager->worldLights[0]->SetAmbientIntensity(0.5f);
+	gameLightManager->SetAttenuation(1.0f);
 
 	atPercent++;
 	std::cout << "Loading... - " << atPercent * 10 << std::endl;
 
 	//---Directional Light---//
-	lightSources.push_back(new Light(glm::vec4(0.0f, 10.0f, 0.0f, 1.0f), glm::vec3(1, 1, 1),0));
-	lightSources[1]->SetAttenuation(1.0f);
+	gameLightManager->CreateLight(glm::vec4(0.0f, 10.0f, 0.0f, 1.0f), glm::vec3(1, 1, 1), 0);
+	gameLightManager->worldLights[1]->SetAttenuation(1.0f);
 
 	atPercent++;
 	std::cout << "Loading... - " << atPercent * 10 << std::endl;
 
 	//---Spot Light---//
-	lightSources.push_back(new Light(glm::vec4(0.0f,30.0f , 0.0f, 1.0f), glm::vec3(0, 1, 0),2));
-	lightSources[2]->SetAttenuation(0.1f);
-	lightSources[2]->SetAmbient(0.5f);
-	lightSources[2]->SetConeAngle(15.0f);
-	lightSources[2]->SetConeDirection(glm::vec3(0, 0, -1));
+	gameLightManager->CreateLight(glm::vec4(0.0f, 30.0f, 0.0f, 1.0f), glm::vec3(0, 1, 0), 2);
+	gameLightManager->worldLights[2]->SetAttenuation(0.1f);
+	gameLightManager->worldLights[2]->SetAmbient(0.5f);
+	gameLightManager->worldLights[2]->SetConeAngle(15.0f);
+	gameLightManager->worldLights[2]->SetConeDirection(glm::vec3(0, 0, -1));
 
 	atPercent++;
 	std::cout << "Loading... - " << atPercent * 10 << std::endl;
@@ -129,7 +131,6 @@ bool LandscapeApp::startup() {
 	//Setup the Frame Buffer and Quad for the window
 	postProcessor->SetupFrameBuffer(getWindowHeight(),getWindowWidth());
 	postProcessor->SetupFrameQuad  (getWindowHeight(),getWindowWidth());
-	
 	heightMap = new HeightMap();//---Create the heightmap---
 	//d_Renderer = new DeferredRenderer();//---Create the Deffered Rendere---
 	//d_Renderer->CreateGPassBuffer(getWindowWidth(), getWindowHeight());
@@ -153,7 +154,7 @@ void LandscapeApp::shutdown() {
 	for (auto& member : m_emitter){
 		delete member;
 	}
-	for (auto& member : lightSources) {
+	for (auto& member : gameLightManager->worldLights) {
 		delete member;
 	}
 	//delete all pointers, cleanup 
@@ -174,7 +175,7 @@ void LandscapeApp::update(float deltaTime) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	//Turn on/off wireframe if enabled
 
-	for (int i = 0; i < lightSources.size(); ++i)
+	for (int i = 0; i < gameLightManager->worldLights.size(); ++i)
 	{
 		std::string lightEditor;
 		switch (i)
@@ -190,10 +191,10 @@ void LandscapeApp::update(float deltaTime) {
 			break;
 		}
 		ImGui::Begin(lightEditor.c_str());
-		ImGui::SliderFloat("Ambient Strength", &lightSources[i]->ambientIntensity, 0, 10);
-		ImGui::SliderFloat("Specular Strength", &lightSources[i]->SpecIntensity, 0, 10000);
-		ImGui::ColorEdit3("Light Color", glm::value_ptr(lightSources[i]->colour));
-		ImGui::ColorEdit3("Spec Light Color", glm::value_ptr(lightSources[i]->specColor));
+		ImGui::SliderFloat("Ambient Strength", &gameLightManager->worldLights[i]->ambientIntensity, 0, 10);
+		ImGui::SliderFloat("Specular Strength", &gameLightManager->worldLights[i]->SpecIntensity, 0, 10000);
+		ImGui::ColorEdit3("Light Color", glm::value_ptr(gameLightManager->worldLights[i]->colour));
+		ImGui::ColorEdit3("Spec Light Color", glm::value_ptr(gameLightManager->worldLights[i]->specColor));
 		ImGui::End();
 	}//Draw the light UI/Editor for each light
 
@@ -215,17 +216,17 @@ void LandscapeApp::update(float deltaTime) {
 	ImGui::Text("Camera Position");
 	ImGui::Text(glm::to_string(m_camera->GetPos()).c_str());
 	ImGui::Text("Light Position");
-	ImGui::Text(glm::to_string(lightSources[0]->getPosition()).c_str());
-	ImGui::Text(glm::to_string(lightSources[1]->getPosition()).c_str());
-	ImGui::Text(glm::to_string(lightSources[2]->getPosition()).c_str());
+	ImGui::Text(glm::to_string(gameLightManager->worldLights[0]->getPosition()).c_str());
+	ImGui::Text(glm::to_string(gameLightManager->worldLights[1]->getPosition()).c_str());
+	ImGui::Text(glm::to_string(gameLightManager->worldLights[2]->getPosition()).c_str());
 
 	ImGui::End();
 	//Drawing UI
 
 	//Draw the Post Process UI
 	postProcessor->DrawPostProcessUI();
-	lightSources[2]->SetPosition(glm::vec4(m_camera->GetPos(),1));
-	lightSources[2]->SetConeDirection(m_camera->m_cameraLook);
+	gameLightManager->worldLights[2]->SetPosition(glm::vec4(m_camera->GetPos(),1));
+	gameLightManager->worldLights[2]->SetConeDirection(m_camera->m_cameraLook);
 
 
 	for (auto& member : m_emitter){
@@ -250,7 +251,7 @@ void LandscapeApp::update(float deltaTime) {
 	Gizmos::addSphere(vec3(0, 0, 0), .5, 64, 12, vec4(1, 0, 0, 0.5f), &sphereMat);
 	
 	//Adding a sphere into the scene and rotation in a circle which will be the lights postion
-	lightSources[0]->SetPosition(glm::vec4(sphereMat[3].xyz,1));
+	gameLightManager->worldLights[0]->SetPosition(glm::vec4(sphereMat[3].xyz,1));
 
 	//Draw a Grid
 	//DrawGrid();
@@ -288,24 +289,26 @@ void LandscapeApp::draw() {
 	
 	glm::mat4 projectionView = m_camera->GetProjection() * m_camera->GetView();//Setting up the projection view
 	
-	heightMap->DrawHeightMap(projectionView, lightSources, m_camera);//Draw the heightmap
+	gameLightManager->SetLightArrays(gameLightManager->worldLights);//Setting light array values for shader passing
+
+
+	heightMap->DrawHeightMap(projectionView, m_camera, gameLightManager);//Draw the heightmap
 
 	for (auto& member : gameModels)
 	{
-		member->Draw(projectionView,lightSources,m_camera);
+		member->Draw(projectionView,m_camera,gameLightManager);
 	}//Draw all gamemodels
 	for (auto& member : m_emitter)
 	{
 		member->Draw(projectionView);
 	}//Draw all emmitters
 
-	ObjectCreator->DrawAll(projectionView,lightSources,m_camera);//Draw all objects
+	ObjectCreator->DrawAll(projectionView, gameLightManager->worldLights,m_camera);//Draw all objects
 
 	ImGui::Begin("Frustrum Culling");
 	bool vis = m_camera->getFrustrumPlanes(projectionView, cullingObjectPosition.x,cullingObjectPosition.y,cullingObjectPosition.z,cullingObjectRadius);
 	ImGui::Checkbox("Is culling object Visible: ", &vis);
 	ImGui::End();
-	//Drawing the Frustrum Culling checker UI
-	
 	postProcessor->DrawPostProcess(postProcessor->m_enablePostProcess, getWindowWidth(), getWindowHeight());//Draw the Post Processor
+	//d_Renderer->Render(m_camera);
 }

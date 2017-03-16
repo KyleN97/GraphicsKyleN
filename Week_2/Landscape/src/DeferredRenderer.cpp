@@ -4,13 +4,15 @@
 
 DeferredRenderer::DeferredRenderer()
 {
-	shader = new Shader("Lanscape/Shaders/DeferredRenderer");
-
+	gBufferShader = new Shader("Lanscape/Shaders/Gbuffer");
+	compShader = new Shader("Landscape/Shaders/compPass");
+	directLight = new Shader("Landscape/Shaders/directLight");
 }
 
 
 DeferredRenderer::~DeferredRenderer()
 {
+
 }
 
 void DeferredRenderer::CreateGPassBuffer(int windowWidth, int windowHeight)
@@ -63,4 +65,33 @@ void DeferredRenderer::CreateLightBuffer(int windowWidth, int windowHeight)
 		std::cout<< "Framebuffer Error!\n"; 
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void DeferredRenderer::Render(Camera* m_camera)
+{
+	// 1st pass, G-Pass: render out the albedo, position and normal
+	glEnable(GL_DEPTH_TEST);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_gpassFBO);
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glUseProgram(gBufferShader->m_program);
+	// bind camera transforms, including view matrix separate
+	int loc = glGetUniformLocation(gBufferShader->m_program, "projectionView");
+	glUniformMatrix4fv(loc, 1, GL_FALSE, &(m_camera->GetProjection()[0][0]));
+	loc = glGetUniformLocation(gBufferShader->m_program,"view");
+	glUniformMatrix4fv(loc, 1, GL_FALSE, &(m_camera->GetView()[0][0]));
+	// TODO: DRAW YOUR GEOMETRY HERE
+	// in this example the Stanford Bunny
+	// more passes to come...
+}
+
+void DeferredRenderer::drawDirectionalLight(const glm::vec3 & direction, const glm::vec3 & diffuse,Camera* m_camera)
+{
+	//glm::vec4 viewSpaceLight = m_camera->GetView() * glm::vec4(glm::normalize(direction), 0);
+	//int loc = glGetUniformLocation(directLight->m_program, "lightDirection");
+	//glUniform3fv(loc, 1, &viewSpaceLight[0]);
+	//loc = glGetUniformLocation(directLight->m_program, "lightDiffuse");
+	//glUniform3fv(loc, 1, &diffuse[0]);
+	//glBindVertexArray(m_quadVAO);
+	//glDrawArrays(GL_TRIANGLES, 0, 6);
 }

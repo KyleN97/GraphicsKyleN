@@ -16,6 +16,5 @@ private:
 	std::string LoadShader(const std::string& fileName);//Load the sctaul shaders
 	void CheckShaderError(GLuint shader, GLuint flag, bool isProgram, const std::string& errorMessage);//Check the shhaders for erros
 	GLuint m_shaders[NUM_SHADER];//Shaders within application
-
 };
 

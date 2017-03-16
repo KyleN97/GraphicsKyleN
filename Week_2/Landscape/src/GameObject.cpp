@@ -20,6 +20,12 @@ void GameObject::Create()
 		objectShaders.push_back(new Shader("Landscape/Shaders/cube"));
 		CreateCube(glm::vec3(gameObjects[amountOfObjects]->objectScale));
 	}//When creating check if it is a cube , if so create a shader and the cube
+	//if (gameObjects[amountOfObjects]->objectType == "ISO")
+	//{
+		//tessellationControlShader = new Shader("Landscape/Shaders/tessellationControl",true);
+		//tessellationEvaluationShader = new Shader("Landscape/Shaders/tessellationEvaluation",true);
+		//CreateIsosahedron(glm::vec3(gameObjects[amountOfObjects]->objectScale));
+	//}
 	gameObjects.push_back(new Object());
 	amountOfObjects++;
 	gameObjects[amountOfObjects]->objectPosition = glm::vec3(1, 1, 1);
@@ -39,7 +45,7 @@ void GameObject::DrawUI()
 	std::string fileDir = "Landscape/Textures/";
 	std::string fileFormat = ".png";
 	std::string textureToLoad = fileDir + listbox_items_tex[listbox_item_current_tex] + fileFormat;
-	const char* listbox_items[] = {"AABBFilled" };
+	const char* listbox_items[] = {"AABBFilled"};
 	static int listbox_item_current = 0;
 	ImGui::ListBox("Object Type", &listbox_item_current, listbox_items, sizeof(listbox_items) / sizeof(listbox_items[0]), 4);
 	if (ImGui::Button("Create Object"))
@@ -144,68 +150,117 @@ void GameObject::CreateCube(glm::vec3 scale)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
+//void GameObject::CreateIsosahedron(glm::vec3 scale)
+//{
+//	const float verts[] = {
+//		0.000f,  0.000f,  1.000f,
+//		0.894f,  0.000f,  0.447f,
+//		0.276f,  0.851f,  0.447f,
+//		-0.724f,  0.526f,  0.447f,
+//		-0.724f, -0.526f,  0.447f,
+//		0.276f, -0.851f,  0.447f,
+//		0.724f,  0.526f, -0.447f,
+//		-0.276f,  0.851f, -0.447f,
+//		-0.894f,  0.000f, -0.447f,
+//		-0.276f, -0.851f, -0.447f,
+//		0.724f, -0.526f, -0.447f,
+//		0.000f,  0.000f, -1.000f };
+//
+//	const int Faces[] = {
+//		2, 1, 0,
+//		3, 2, 0,
+//		4, 3, 0,
+//		5, 4, 0,
+//		1, 5, 0,
+//		11, 6,  7,
+//		11, 7,  8,
+//		11, 8,  9,
+//		11, 9,  10,
+//		11, 10, 6,
+//		1, 2, 6,
+//		2, 3, 7,
+//		3, 4, 8,
+//		4, 5, 9,
+//		5, 1, 10,
+//		2,  7, 6,
+//		3,  8, 7,
+//		4,  9, 8,
+//		5, 10, 9,
+//		1, 6, 10 };
+//	objectData.push_back(new BufferData());//push back an empty object
+//	objectData[amountOfObjects]->m_IndicesCount = sizeof(Faces) / sizeof(Faces[0]);//fill the indiceis
+//
+//	glGenVertexArrays(1, &objectData[amountOfObjects]->m_vao);
+//	glBindVertexArray(objectData[amountOfObjects]->m_vao);
+//
+//
+//	glGenBuffers(1, &objectData[amountOfObjects]->m_vbo);
+//	glGenBuffers(1, &objectData[amountOfObjects]->m_ibo);
+//
+//	glBindBuffer(GL_ARRAY_BUFFER, objectData[amountOfObjects]->m_vbo);
+//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, objectData[amountOfObjects]->m_ibo);
+//
+//	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+//	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Faces), Faces, GL_STATIC_DRAW);
+//	// Create the VBO for positions:
+//	glEnableVertexAttribArray(0);
+//	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(verts), (void*)0);//Position
+//	// Create the VBO for indices:
+//
+//
+//	glBindBuffer(GL_ARRAY_BUFFER, 0);
+//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+//}
+//void GameObject::DrawISO(glm::mat4 projectionView, std::vector<Light*> lightSources, Camera* m_camera)
+//{
+//	for (int i = 0; i < amountOfObjects; i++) {
+//		if (gameObjects[i]->objectType == "ISO")
+//		{
+//			glPatchParameteri(GL_PATCH_VERTICES, 3);
+//			glUseProgram(tessellationControlShader->m_program);
+//			glBindVertexArray(objectData[i]->m_vao);
+//			glDrawElements(GL_PATCHES, objectData[i]->m_IndicesCount, GL_UNSIGNED_INT, 0);
+//			// unbind the VAO, cleaning up after ourselves
+//			glBindVertexArray(0);
+//			// Deactivate the shader
+//			glUseProgram(0);
+//
+//			glUseProgram(tessellationEvaluationShader->m_program);
+//			glBindVertexArray(objectData[i]->m_vao);
+//			glDrawElements(GL_PATCHES, objectData[i]->m_IndicesCount, GL_UNSIGNED_INT, 0);
+//			// unbind the VAO, cleaning up after ourselves
+//			glBindVertexArray(0);
+//			// Deactivate the shader
+//			glUseProgram(0);
+//		}
+//	}
+//}
 void GameObject::DrawCube(glm::mat4 projectionView,std::vector<Light*> lightSources, Camera* m_camera)
 {
 	for (int i = 0; i < amountOfObjects; i++) {
-		//GLfloat *ambient, *attenuation, *coneangle, *specPower;
-		//glm::vec3 * specCol, *col, *coneDir;
-		//glm::vec4* pos;
-		//GLint* typeOfLight;
-		////Gettting all the stats from the lights and storing them within pointer arrays to pass to shader
-		//specCol = new glm::vec3[lightSources.size()];//Specular Colour of the light
-		//pos = new glm::vec4[lightSources.size()];//Position of the light
-		//col = new glm::vec3[lightSources.size()];//Colour of the light
-		//coneDir = new glm::vec3[lightSources.size()];//Cone Direction of the spot light
-		//ambient = new GLfloat[lightSources.size()];//Ambient of the light
-		//attenuation = new GLfloat[lightSources.size()];//Attenuation of the light
-		//coneangle = new GLfloat[lightSources.size()];//Angle of the cone for spot light
-		//specPower = new GLfloat[lightSources.size()];//specular 
-		//											 //power of the light
-		//typeOfLight = new GLint[lightSources.size()];
-		//for (int i = 0; i < lightSources.size(); i++)
-		//{
-		//	ambient[i] = lightSources[i]->getAmbientIntensity();
-		//	attenuation[i] = lightSources[i]->getAttenuation();
-		//	coneangle[i] = lightSources[i]->getConeAngle();
-		//	specPower[i] = lightSources[i]->getSpecIntensity();
-		//	specCol[i] = lightSources[i]->getSpecColor();
-		//	pos[i] = lightSources[i]->getPosition();
-		//	col[i] = lightSources[i]->getColour();
-		//	coneDir[i] = lightSources[i]->getConeDirection();
-		//	typeOfLight[i] = lightSources[i]->getLightType();
-		//	//Setting all the arrays with the lights data
-		//}
-		// Ask openGL to use our shader program
-		glUseProgram(objectShaders[i]->m_program);
+		if (gameObjects[i]->objectType == "AABBFilled")
+		{
+			// Ask openGL to use our shader program
+			glUseProgram(objectShaders[i]->m_program);
 
-		glUniformMatrix4fv(glGetUniformLocation(objectShaders[i]->m_program, "projectionView"), 1, false, glm::value_ptr(projectionView));
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, objectTextures[i]->getHandle());
-		glUniform1i(glGetUniformLocation(objectShaders[i]->m_program, "texture"), 0);
-		////***Pass in the lightsources vector and setup arrays and pass to shader for multiple light support on fbx models***///	
-		//glUniform1fv(glGetUniformLocation(objectShaders[i]->m_program, "lightAmbientStrength"), lightSources.size(), ambient);
-		//glUniform3fv(glGetUniformLocation(objectShaders[i]->m_program, "lightSpecColor"), lightSources.size(), glm::value_ptr(specCol[0]));
-		//glUniform4fv(glGetUniformLocation(objectShaders[i]->m_program, "lightPosition"), lightSources.size(), glm::value_ptr(pos[0]));
-		//glUniform3fv(glGetUniformLocation(objectShaders[i]->m_program, "lightColor"), lightSources.size(), glm::value_ptr(col[0]));
-		//glUniform1fv(glGetUniformLocation(objectShaders[i]->m_program, "attenuation"), lightSources.size(), attenuation);
-		//glUniform1fv(glGetUniformLocation(objectShaders[i]->m_program, "coneangle"), lightSources.size(), coneangle);
-		//glUniform3fv(glGetUniformLocation(objectShaders[i]->m_program, "coneDirection"), lightSources.size(), glm::value_ptr(coneDir[0]));
-		//glUniform1fv(glGetUniformLocation(objectShaders[i]->m_program, "specPower"), lightSources.size(), specPower);
-		//glUniform1iv(glGetUniformLocation(objectShaders[i]->m_program, "lightType"), lightSources.size(), typeOfLight);
-		//glUniform3fv(glGetUniformLocation(objectShaders[i]->m_program, "camPos"), 1, &m_camera->GetPos()[0]);
-		//Pass in the projection view and texture to the shader
+			glUniformMatrix4fv(glGetUniformLocation(objectShaders[i]->m_program, "projectionView"), 1, false, glm::value_ptr(projectionView));
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, objectTextures[i]->getHandle());
+			glUniform1i(glGetUniformLocation(objectShaders[i]->m_program, "texture"), 0);
+			//Pass in the projection view and texture to the shader
 
-		// Bind VAO
-		glBindVertexArray(objectData[i]->m_vao);
+			// Bind VAO
+			glBindVertexArray(objectData[i]->m_vao);
 
-		// DRAW STUFF
-		glDrawElements(GL_TRIANGLES, objectData[i]->m_IndicesCount, GL_UNSIGNED_BYTE, 0);
+			// DRAW STUFF
+			glDrawElements(GL_TRIANGLES, objectData[i]->m_IndicesCount, GL_UNSIGNED_BYTE, 0);
 
-		// unbind the VAO, cleaning up after ourselves
-		glBindVertexArray(0);
+			// unbind the VAO, cleaning up after ourselves
+			glBindVertexArray(0);
 
-		// Deactivate the shader
-		glUseProgram(0);
+			// Deactivate the shader
+			glUseProgram(0);
+		}
 	}
 }
 
@@ -217,6 +272,10 @@ void GameObject::DrawAll(glm::mat4 projectionView,std::vector<Light*> lightSourc
 		{
 			DrawCube(projectionView,lightSources,m_camera);
 		}//for each cube in the gameobjects, draw it
+		//if (gameObjects[i]->objectType == "ISO")
+		//{
+		//	DrawISO(projectionView, lightSources, m_camera);
+		//}
 
 	}//Draw all gameobjects
 }

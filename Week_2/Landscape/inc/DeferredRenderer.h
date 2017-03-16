@@ -1,5 +1,6 @@
 #pragma once
 #include "Shader.h"
+#include "Camera.h"
 #include <gl_core_4_4.h>
 class DeferredRenderer
 {
@@ -9,8 +10,12 @@ public:
 
 	void CreateGPassBuffer(int windowWidth, int windowHeight); 
 	void CreateLightBuffer(int windowWidth, int windowHeight);
+	void Render(Camera* m_camera);
+	void drawDirectionalLight(const glm::vec3& direction, const glm::vec3& diffuse,Camera* m_camera);
 private:
-	Shader* shader;
+	Shader* gBufferShader;
+	Shader* compShader;
+	Shader* directLight;
 	GLuint m_gpassFBO;
 	GLuint m_albedoTexture;
 	GLuint m_positionTexture;
@@ -18,7 +23,7 @@ private:
 	GLuint m_gpassDepth;
 	GLuint m_lightFBO;
 	GLuint m_lightTexture;
-	bool status;
+	GLenum status;
 
 };
 

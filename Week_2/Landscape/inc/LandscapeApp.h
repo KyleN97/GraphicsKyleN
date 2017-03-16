@@ -7,7 +7,7 @@
 #include <vector>
 #include <Texture.h>
 class Shader;
-class Light;
+class LightManager;
 class Camera;
 class ParticleEmitter;
 class PostProcessor;
@@ -15,6 +15,7 @@ class GameObject;
 class FBXGameObject;
 class HeightMap;
 class DeferredRenderer;
+
 class LandscapeApp : public aie::Application {
 public:
 
@@ -32,6 +33,7 @@ public:
 
 	void DrawGrid();//Draw a grid within the world
 
+
 protected:
 	Camera* m_camera;//Camera
 	HeightMap* heightMap;//Heightmap
@@ -40,8 +42,7 @@ protected:
 	DeferredRenderer* d_Renderer;//Deffered Renderer
 	std::vector<FBXGameObject*> gameModels;//Game Models
 	std::vector<ParticleEmitter*> m_emitter;//Particles
-	std::vector<Light*> lightSources;//Lights
-
+	LightManager* gameLightManager;
 	glm::vec3 m_positions[2];
 	glm::quat m_rotations[2];
 	//Slerping an object using quarts
@@ -52,5 +53,7 @@ protected:
 
 	//Wether we are rendering wireframe or not
 	bool m_isWireframe = false;
+
+
 
 };

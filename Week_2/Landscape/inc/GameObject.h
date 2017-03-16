@@ -36,7 +36,9 @@ public:
 	~GameObject();
 	void Create();//Create an object
 	void DrawUI();//Draw the ui for object creation
-	void CreateCube(glm::vec3 scale);//Create aqcube
+	void CreateCube(glm::vec3 scale);//Create a cube
+	//void CreateIsosahedron(glm::vec3 scale);
+	//void DrawISO(glm::mat4 projectionView, std::vector<Light*> lightSources, Camera * m_camera);
 	void DrawCube(glm::mat4 projectionView,std::vector<Light*> lightSources,Camera* m_camera);//Draw a cube
 	void DrawAll(glm::mat4 projectionView, std::vector<Light*> lightSources, Camera* m_camera);//Draw all objects
 
@@ -44,6 +46,8 @@ public:
 
 	//Creation of an object
 	std::vector<Shader*> objectShaders;//All the object Shaders
+	//Shader* tessellationControlShader;
+	//Shader* tessellationEvaluationShader;
 	std::vector<aie::Texture*> objectTextures;//All the object Textures
 	std::vector<BufferData*> objectData;//All the buffer data for the objects
 private:
