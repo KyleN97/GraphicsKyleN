@@ -27,7 +27,6 @@ STEP 4: Unload Shader and Geometry
 #include "gl_core_4_4.h"
 #include "Shader.h"
 #include "Light.h"
-#include "DeferredRenderer.h"
 #include "ParticleEmitter.h"
 #include "PostProcessor.h"
 #include "GameObject.h"

@@ -99,7 +99,6 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\DeferredRenderer.cpp" />
     <ClCompile Include="src\HeightMap.cpp" />
     <ClCompile Include="src\FBXGameObject.cpp" />
     <ClCompile Include="src\GameObject.cpp" />
@@ -111,7 +110,6 @@
     <ClCompile Include="src\Shader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="inc\DeferredRenderer.h" />
     <ClInclude Include="inc\HeightMap.h" />
     <ClInclude Include="inc\FBXGameObject.h" />
     <ClInclude Include="inc\GameObject.h" />
