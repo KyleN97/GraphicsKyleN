@@ -9,6 +9,8 @@
 class Object
 {
 public:
+	~Object() {
+	}
 	void Update(float d_time);//Update for each individaul object
 public:
 	glm::vec3 objectPosition = glm::vec3(0,0,0);//objects position

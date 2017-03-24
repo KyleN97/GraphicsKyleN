@@ -10,6 +10,7 @@ PostProcessor::PostProcessor()
 
 PostProcessor::~PostProcessor()
 {
+	delete m_postProcessorShader;//destroy shader
 }
 
 void PostProcessor::SetupFrameBuffer(unsigned int windowWidth, unsigned int windowHeight)

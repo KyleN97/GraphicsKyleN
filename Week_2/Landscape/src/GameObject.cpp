@@ -11,6 +11,18 @@ GameObject::GameObject()
 
 GameObject::~GameObject()
 {
+	for (auto&member : gameObjects)
+	{
+		delete member;
+	}
+	for (auto&member : objectTextures)
+	{
+		delete member;
+	}
+	for (auto&member : objectData)
+	{
+		delete member;
+	}
 }
 
 void GameObject::Create()

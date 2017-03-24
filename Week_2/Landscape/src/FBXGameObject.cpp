@@ -28,6 +28,7 @@ FBXGameObject::~FBXGameObject()
 {
 	CleanupFBXOpenGLBuffers(m_fbxFile);
 	m_fbxFile->unload();
+
 	//Cleanup buffers and unload the file
 }
 

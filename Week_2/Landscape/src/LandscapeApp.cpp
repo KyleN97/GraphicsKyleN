@@ -54,7 +54,7 @@ bool LandscapeApp::startup() {
 	m_camera->SetPosition(glm::vec3(5.0f, 5.0f, 5.0f));
 	m_camera->LookAt(glm::vec3(0.0f, 0.0f, 0.0f));
 	atPercent++;
-	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+	std::cout << "Loading Camera... - " << atPercent * 10 << std::endl;
 	//Create a light at a certain position and colour -  push it into a vector of lights
 	gameLightManager = new LightManager();//Create a game light manager
 	//---Point Light---//
@@ -63,14 +63,14 @@ bool LandscapeApp::startup() {
 	gameLightManager->SetAttenuation(1.0f);
 
 	atPercent++;
-	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+	std::cout << "Loading Light Manager + Point Light... - " << atPercent * 10 << std::endl;
 
 	//---Directional Light---//
 	gameLightManager->CreateLight(glm::vec4(0.0f, 10.0f, 0.0f, 1.0f), glm::vec3(1, 1, 1), 0);
 	gameLightManager->worldLights[1]->SetAttenuation(1.0f);
 
 	atPercent++;
-	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+	std::cout << "Loading Directional Light... - " << atPercent * 10 << std::endl;
 
 	//---Spot Light---//
 	gameLightManager->CreateLight(glm::vec4(0.0f, 30.0f, 0.0f, 1.0f), glm::vec3(0, 1, 0), 2);
@@ -80,7 +80,7 @@ bool LandscapeApp::startup() {
 	gameLightManager->worldLights[2]->SetConeDirection(glm::vec3(0, 0, -1));
 
 	atPercent++;
-	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+	std::cout << "Loading Spot Light.. - " << atPercent * 10 << std::endl;
 
 	//Create a gameModel and push it into a vector
 	gameModels.push_back(new FBXGameObject("Landscape/models/pyro/pyro.fbx","Landscape/Shaders/fbxAnimatedShader",true));
@@ -88,29 +88,32 @@ bool LandscapeApp::startup() {
 	gameModels[0]->Translate(glm::vec3(0, 1, 0));//Moves this object to a certain position
 
 	atPercent++;
-	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+	std::cout << "Loading Pyro... - " << atPercent * 10 << std::endl;
 		
 	gameModels.push_back(new FBXGameObject("Landscape/models/soulspear/soulspear.fbx", "Landscape/Shaders/fbxShader", false));
 
 	atPercent++;
-	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+	std::cout << "Loading Soulspear... - " << atPercent * 10 << std::endl;
 
 	//Create an emitter and push it into a vector
 	m_emitter.push_back(new ParticleEmitter("Landscape/Shaders/particleShader"));
 	m_emitter[0]->Init(100000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 1, 0, 1), glm::vec4(0, 0, 0, 1), glm::vec3(10, 2, 2));
 
 	atPercent++;
-	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+	std::cout << "Loading Particle System... - " << atPercent * 10 << std::endl;
 
 	ObjectCreator = new GameObject();//Create an Object Creator
 
 	atPercent++;
-	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+	std::cout << "Loading Object Creator... - " << atPercent * 10 << std::endl;
 	
 	postProcessor = new PostProcessor();//Create a Post Processor
-
+	
+	//Setup the Frame Buffer and Quad for the window
+	postProcessor->SetupFrameBuffer(getWindowHeight(), getWindowWidth());
+	postProcessor->SetupFrameQuad(getWindowHeight(), getWindowWidth());
 	atPercent++;
-	std::cout << "Loading... - " << atPercent * 10 << std::endl;
+	std::cout << "Loading Post Processor... - " << atPercent * 10 << std::endl;
 
 	//Setting the background colour of the scene
 	setBackgroundColour(0.25f, 0.25f, 0.25f);
@@ -118,23 +121,18 @@ bool LandscapeApp::startup() {
 	//---initialize gizmo primitive counts---
 	Gizmos::create(10000, 10000, 10000, 10000);
 
-	atPercent++;
-	std::cout << "Loading... - " << atPercent * 10 << std::endl;
-
 	m_positions[0] = glm::vec3(10, 5, 10);
 	m_positions[1] = glm::vec3(-10, 0, -10);
 	m_rotations[0] = glm::quat(glm::vec3(0,-1, 0));
 	m_rotations[1] = glm::quat(glm::vec3(0, 1, 0));
 	//Setup default postion and rotation for the obejct using quarts
 
-	//Setup the Frame Buffer and Quad for the window
-	postProcessor->SetupFrameBuffer(getWindowHeight(),getWindowWidth());
-	postProcessor->SetupFrameQuad  (getWindowHeight(),getWindowWidth());
 	heightMap = new HeightMap();//---Create the heightmap---
-
+	atPercent++;
+	std::cout << "Loading Heightmap... - " << atPercent * 10 << std::endl;
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+	std::cout << "Succesfully Loaded Engine\n";
 	return true;
 }
 
@@ -143,14 +141,12 @@ void LandscapeApp::shutdown() {
 	delete heightMap;
 	delete postProcessor;
 	delete ObjectCreator;
+	delete gameLightManager;
 	Gizmos::destroy();
 	for (auto& member : gameModels){
 		delete member;
 	}
 	for (auto& member : m_emitter){
-		delete member;
-	}
-	for (auto& member : gameLightManager->worldLights) {
 		delete member;
 	}
 	//delete all pointers, cleanup 

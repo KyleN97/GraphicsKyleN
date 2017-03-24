@@ -256,10 +256,11 @@ void HeightMap::DrawHeightMap(glm::mat4 projectionView, Camera* camera, LightMan
 
 void HeightMap::DestroyHeightMap()
 {
-	for (int i = 0; i < NUM_ITEMS; i++)
+	for (auto & member : m_textures)
 	{
-		delete m_textures[i];//delete all textures
+		delete member;
 	}
+	delete m_shader;
 }
 
 void HeightMap::Vertex::SetupVertexAttribPointers()
