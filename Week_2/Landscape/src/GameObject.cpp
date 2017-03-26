@@ -32,12 +32,6 @@ void GameObject::Create()
 		objectShaders.push_back(new Shader("Landscape/Shaders/cube"));
 		CreateCube(glm::vec3(gameObjects[amountOfObjects]->objectScale));
 	}//When creating check if it is a cube , if so create a shader and the cube
-	//if (gameObjects[amountOfObjects]->objectType == "ISO")
-	//{
-		//tessellationControlShader = new Shader("Landscape/Shaders/tessellationControl",true);
-		//tessellationEvaluationShader = new Shader("Landscape/Shaders/tessellationEvaluation",true);
-		//CreateIsosahedron(glm::vec3(gameObjects[amountOfObjects]->objectScale));
-	//}
 	gameObjects.push_back(new Object());
 	amountOfObjects++;
 	gameObjects[amountOfObjects]->objectPosition = glm::vec3(1, 1, 1);
@@ -162,91 +156,6 @@ void GameObject::CreateCube(glm::vec3 scale)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-//void GameObject::CreateIsosahedron(glm::vec3 scale)
-//{
-//	const float verts[] = {
-//		0.000f,  0.000f,  1.000f,
-//		0.894f,  0.000f,  0.447f,
-//		0.276f,  0.851f,  0.447f,
-//		-0.724f,  0.526f,  0.447f,
-//		-0.724f, -0.526f,  0.447f,
-//		0.276f, -0.851f,  0.447f,
-//		0.724f,  0.526f, -0.447f,
-//		-0.276f,  0.851f, -0.447f,
-//		-0.894f,  0.000f, -0.447f,
-//		-0.276f, -0.851f, -0.447f,
-//		0.724f, -0.526f, -0.447f,
-//		0.000f,  0.000f, -1.000f };
-//
-//	const int Faces[] = {
-//		2, 1, 0,
-//		3, 2, 0,
-//		4, 3, 0,
-//		5, 4, 0,
-//		1, 5, 0,
-//		11, 6,  7,
-//		11, 7,  8,
-//		11, 8,  9,
-//		11, 9,  10,
-//		11, 10, 6,
-//		1, 2, 6,
-//		2, 3, 7,
-//		3, 4, 8,
-//		4, 5, 9,
-//		5, 1, 10,
-//		2,  7, 6,
-//		3,  8, 7,
-//		4,  9, 8,
-//		5, 10, 9,
-//		1, 6, 10 };
-//	objectData.push_back(new BufferData());//push back an empty object
-//	objectData[amountOfObjects]->m_IndicesCount = sizeof(Faces) / sizeof(Faces[0]);//fill the indiceis
-//
-//	glGenVertexArrays(1, &objectData[amountOfObjects]->m_vao);
-//	glBindVertexArray(objectData[amountOfObjects]->m_vao);
-//
-//
-//	glGenBuffers(1, &objectData[amountOfObjects]->m_vbo);
-//	glGenBuffers(1, &objectData[amountOfObjects]->m_ibo);
-//
-//	glBindBuffer(GL_ARRAY_BUFFER, objectData[amountOfObjects]->m_vbo);
-//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, objectData[amountOfObjects]->m_ibo);
-//
-//	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
-//	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Faces), Faces, GL_STATIC_DRAW);
-//	// Create the VBO for positions:
-//	glEnableVertexAttribArray(0);
-//	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(verts), (void*)0);//Position
-//	// Create the VBO for indices:
-//
-//
-//	glBindBuffer(GL_ARRAY_BUFFER, 0);
-//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-//}
-//void GameObject::DrawISO(glm::mat4 projectionView, std::vector<Light*> lightSources, Camera* m_camera)
-//{
-//	for (int i = 0; i < amountOfObjects; i++) {
-//		if (gameObjects[i]->objectType == "ISO")
-//		{
-//			glPatchParameteri(GL_PATCH_VERTICES, 3);
-//			glUseProgram(tessellationControlShader->m_program);
-//			glBindVertexArray(objectData[i]->m_vao);
-//			glDrawElements(GL_PATCHES, objectData[i]->m_IndicesCount, GL_UNSIGNED_INT, 0);
-//			// unbind the VAO, cleaning up after ourselves
-//			glBindVertexArray(0);
-//			// Deactivate the shader
-//			glUseProgram(0);
-//
-//			glUseProgram(tessellationEvaluationShader->m_program);
-//			glBindVertexArray(objectData[i]->m_vao);
-//			glDrawElements(GL_PATCHES, objectData[i]->m_IndicesCount, GL_UNSIGNED_INT, 0);
-//			// unbind the VAO, cleaning up after ourselves
-//			glBindVertexArray(0);
-//			// Deactivate the shader
-//			glUseProgram(0);
-//		}
-//	}
-//}
 void GameObject::DrawCube(glm::mat4 projectionView,std::vector<Light*> lightSources, Camera* m_camera)
 {
 	for (int i = 0; i < amountOfObjects; i++) {
@@ -284,10 +193,6 @@ void GameObject::DrawAll(glm::mat4 projectionView,std::vector<Light*> lightSourc
 		{
 			DrawCube(projectionView,lightSources,m_camera);
 		}//for each cube in the gameobjects, draw it
-		//if (gameObjects[i]->objectType == "ISO")
-		//{
-		//	DrawISO(projectionView, lightSources, m_camera);
-		//}
 
 	}//Draw all gameobjects
 }

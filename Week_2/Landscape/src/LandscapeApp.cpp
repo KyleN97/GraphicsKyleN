@@ -58,7 +58,7 @@ bool LandscapeApp::startup() {
 	//Create a light at a certain position and colour -  push it into a vector of lights
 	gameLightManager = new LightManager();//Create a game light manager
 	//---Point Light---//
-	gameLightManager->CreateLight(glm::vec4(0.0f, 5.0f, 0.0f, 1.0f), glm::vec3(0, 1, 1), 1);
+	gameLightManager->CreateLight(glm::vec4(0.0f, 5.0f, 0.0f, 1.0f), glm::vec3(1, 1, 1), 1);
 	gameLightManager->worldLights[0]->SetAmbientIntensity(0.5f);
 	gameLightManager->SetAttenuation(1.0f);
 
